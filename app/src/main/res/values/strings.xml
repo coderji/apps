@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">"Tree"</string>
-    <string name="gan">"Gank.io"</string>
+    <string name="run">"Run"</string>
+    <string name="gan">"Gan"</string>
     <string name="app">"App"</string>
     <string name="loading">"Loading"</string>
     <string name="network_error">"Network error"</string>

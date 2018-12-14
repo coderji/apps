@@ -1,8 +1,8 @@
 package com.ji.tree.gan.daily;
 
 import com.ji.tree.gan.GanDailyData;
-import com.ji.tree.BasePresenter;
-import com.ji.tree.BaseView;
+import com.ji.tree.mvp.BasePresenter;
+import com.ji.tree.mvp.BaseView;
 
 import java.util.List;
 

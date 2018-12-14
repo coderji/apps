@@ -2,7 +2,7 @@ package com.ji.tree.gan;
 
 import android.content.Context;
 
-import com.ji.tree.Database;
+import com.ji.tree.gan.local.HistoryDatabase;
 import com.ji.tree.gan.local.HistoryDao;
 import com.ji.tree.gan.local.HistoryDate;
 import com.ji.tree.utils.LogUtils;
@@ -34,7 +34,7 @@ public class GanRepository {
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build().create(GanApi.class);
 
-        mHistoryDao = Database.getInstance(context).historyDao();
+        mHistoryDao = HistoryDatabase.getInstance(context).historyDao();
         mGanDataList = new ArrayList<>();
     }
 

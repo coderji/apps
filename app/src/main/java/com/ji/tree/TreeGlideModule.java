@@ -13,5 +13,5 @@ import com.bumptech.glide.module.AppGlideModule;
  * Note: Libraries should not include AppGlideModule implementations. See the configuration page for details.
  */
 @GlideModule
-public class TreeAppGlideModule extends AppGlideModule {
+public class TreeGlideModule extends AppGlideModule {
 }
