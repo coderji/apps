@@ -2,9 +2,8 @@ package com.ji.tree.gan;
 
 import android.content.Context;
 
-import com.ji.tree.gan.local.HistoryDatabase;
-import com.ji.tree.gan.local.HistoryDao;
 import com.ji.tree.gan.local.HistoryDate;
+import com.ji.tree.gan.local.HistoryDateHelper;
 import com.ji.tree.utils.LogUtils;
 
 import java.util.ArrayList;
@@ -24,7 +23,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class GanRepository {
     private String TAG = "GanRepository";
     private GanApi mGanApi;
-    private HistoryDao mHistoryDao;
+    private HistoryDateHelper mHistoryDateHelper;
     private List<GanDailyData.GanData> mGanDataList;
 
     public GanRepository(Context context) {
@@ -34,7 +33,7 @@ public class GanRepository {
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build().create(GanApi.class);
 
-        mHistoryDao = HistoryDatabase.getInstance(context).historyDao();
+        mHistoryDateHelper = new HistoryDateHelper(context);
         mGanDataList = new ArrayList<>();
     }
 
@@ -49,7 +48,7 @@ public class GanRepository {
                     historyDate.date = result;
                     historyDateList.add(historyDate);
                 }
-                mHistoryDao.insert(historyDateList);
+                mHistoryDateHelper.insert(historyDateList);
             }
         }, new Consumer<Throwable>() {
             @Override
@@ -69,7 +68,7 @@ public class GanRepository {
             @Override
             public void subscribe(SingleEmitter<Boolean> emitter) throws Exception {
                 int offset = 5;
-                List<HistoryDate> dateList = mHistoryDao.getDateList(mGanDataList.size(), offset);
+                List<HistoryDate> dateList = mHistoryDateHelper.getDateList(mGanDataList.size(), offset);
                 for (int i = 0; i < offset; i++) {
                     String[] date = dateList.get(i).date.split("-");
                     Disposable disposable = mGanApi.getDailyData(date[0], date[1], date[2])
