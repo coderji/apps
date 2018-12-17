@@ -1,14 +1,19 @@
 package com.ji.tree.app.tencent;
 
-import io.reactivex.Observable;
-import okhttp3.ResponseBody;
-import retrofit2.http.GET;
-import retrofit2.http.Query;
+import com.ji.tree.utils.NetUtils;
 
-public interface TencentApi {
-    @GET("https://sj.qq.com/myapp/searchAjax.htm?")
-    Observable<SearchAppData> search(@Query("kw") String kw);
+public class TencentApi {
+    public static SearchAppData search(String kw) {
+        SearchAppData searchAppData = new SearchAppData();
+        String s = NetUtils.get("https://sj.qq.com/myapp/searchAjax.htm?"
+                + "&kw=" + kw);
+        return searchAppData;
+    }
 
-    @GET("https://mapp.qzone.qq.com/cgi-bin/mapp/mapp_applist?apptype=soft_top&platform=touch")
-    Observable<ResponseBody>    softTop(@Query("pageNo") int pageNo, @Query("pageSize") int pageSize);
+    public static TopAppData softTop(int pageNo, int pageSize) {
+        TopAppData topAppData = new TopAppData();
+        String s = NetUtils.get("https://mapp.qzone.qq.com/cgi-bin/mapp/mapp_applist?apptype=soft_top&platform=touch"
+                + "&pageNo=" + pageNo + "&pageSize" + pageSize);
+        return topAppData;
+    }
 }

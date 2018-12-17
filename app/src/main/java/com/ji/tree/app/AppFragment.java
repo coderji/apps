@@ -2,11 +2,6 @@ package com.ji.tree.app;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,11 +9,16 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.ji.tree.R;
 import com.ji.tree.app.local.AppData;
 
 import java.util.List;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 public class AppFragment extends Fragment implements AppContract.View {
     private String TAG = "AppFragment";
@@ -85,7 +85,7 @@ public class AppFragment extends Fragment implements AppContract.View {
         public void onBindViewHolder(@NonNull Holder holder, int position) {
             AppData data = mList.get(position);
             holder.number.setText(String.valueOf(position + 1));
-            Glide.with(mContext).load(data.iconUrl).into(holder.icon);
+
             holder.name.setText(data.name);
         }
 

@@ -1,7 +1,7 @@
 package com.ji.tree.main;
 
+import android.app.Activity;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -12,7 +12,7 @@ import android.widget.ProgressBar;
 import com.ji.tree.R;
 import com.ji.tree.utils.LogUtils;
 
-public class WebActivity extends AppCompatActivity {
+public class WebActivity extends Activity {
     private static final String TAG = "WebActivity";
     public static final String URL = "url";
     private ProgressBar mProgressBar;

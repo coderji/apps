@@ -1,9 +1,6 @@
 package com.ji.tree.main;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
 import com.ji.tree.R;
@@ -16,7 +13,11 @@ import com.ji.tree.gan.GanRepository;
 import com.ji.tree.run.RunFragment;
 import com.ji.tree.utils.LogUtils;
 
-public class MainActivity extends AppCompatActivity {
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentTransaction;
+
+public class MainActivity extends FragmentActivity {
     private static final String TAG = "MainActivity";
     private Fragment mTopFragment, mRunFragment, mDailyFragment, mAppFragment;
 

@@ -5,12 +5,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.os.SystemClock;
 
 import com.ji.tree.utils.LogUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class HistoryDateHelper {
@@ -19,7 +17,7 @@ public class HistoryDateHelper {
 
     public HistoryDateHelper(Context context) {
         if (mSQLiteOpenHelperImpl == null) {
-            mSQLiteOpenHelperImpl = new SQLiteOpenHelperImpl(context.getApplicationContext(),
+            mSQLiteOpenHelperImpl = new SQLiteOpenHelperImpl(context,
                     "gan.db", null, 1);
         }
     }
@@ -68,7 +66,7 @@ public class HistoryDateHelper {
         static String DATE_COLUMN0 = "date";
 
         private SQLiteOpenHelperImpl(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
-            super(context, name, factory, version);
+            super(context.getApplicationContext(), name, factory, version);
             LogUtils.v(TAG, "SQLiteOpenHelperImpl");
         }
 

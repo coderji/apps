@@ -1,7 +1,5 @@
 package com.ji.tree.utils;
 
-import android.util.AndroidRuntimeException;
-
 import com.ji.tree.BuildConfig;
 
 public class LogUtils {
@@ -23,9 +21,5 @@ public class LogUtils {
 
     public static void e(String tag, String msg, Throwable e) {
         android.util.Log.e(TAG, tag + " - " + msg, e);
-    }
-
-    public static void exception(String tag, String msg) {
-        throw new AndroidRuntimeException(tag + " - " + msg);
     }
 }
