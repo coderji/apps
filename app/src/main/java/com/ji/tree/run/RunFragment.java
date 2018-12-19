@@ -22,6 +22,7 @@ public class RunFragment extends Fragment {
     private String TAG = "RunFragment";
     private TextView mTextView;
     private StringBuilder mStringBuilder = new StringBuilder();
+    private int REQUEST_H = 100, REQUEST_L = 101, REQUEST_A = 102;
 
     @Nullable
     @Override
@@ -35,12 +36,18 @@ public class RunFragment extends Fragment {
 
         mTextView = view.findViewById(R.id.run_tv);
 
-        startSafe("com.pa.health");
-        startSafe("com.pingan.lifeinsurance");
-        startSafe("com.eg.android.AlipayGphone");
+        startSafe("com.pa.health", REQUEST_H);
+        startSafe("com.pingan.lifeinsurance", REQUEST_L);
+        startSafe("com.eg.android.AlipayGphone", REQUEST_A);
     }
 
-    private void startSafe(@NonNull String packageName) {
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        LogUtils.v(TAG, "onActivityResult requestCode:" + requestCode + " resultCode:" + resultCode);
+    }
+
+    private void startSafe(@NonNull String packageName, int requestCode) {
         mStringBuilder.append(packageName).append("\n");
         Intent queryIntent = new Intent();
         queryIntent.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -54,7 +61,7 @@ public class RunFragment extends Fragment {
                 Intent intent = new Intent();
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.setClassName(packageName, activityName);
-                startActivity(intent);
+                startActivityForResult(intent, requestCode);
                 mStringBuilder.append("----->success").append("\n\n");
             } catch (ActivityNotFoundException e) {
                 LogUtils.e(TAG, "startSafe", e);
