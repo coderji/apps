@@ -16,29 +16,13 @@ public class AppPresenter implements AppContract.Presenter {
     }
 
     @Override
-    public void update() {
-        mRepository.update(new TencentRepository.UpdateCallback() {
-
-            @Override
-            public void onUpdate(List<AppData> list) {
-                mView.show(list);
-            }
-        });
-    }
-
-    @Override
-    public void top() {
-        mRepository.top(new TencentRepository.TopCallback() {
+    public void getTop() {
+        mRepository.getTop(new TencentRepository.TopCallback() {
             @Override
             public void onTop(List<AppData> list) {
-                mView.show(list);
+                mView.showTop(list);
             }
         });
-    }
-
-    @Override
-    public void install() {
-
     }
 
     @Override

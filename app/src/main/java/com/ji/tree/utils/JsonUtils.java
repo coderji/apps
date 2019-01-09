@@ -17,10 +17,12 @@ public class JsonUtils {
             JSONObject jsonObject = new JSONObject(s);
             Field fields[] = cls.getDeclaredFields();
             for (Field field : fields) {
-//            if (field.getType().equals(Boolean.class))
-//            FieldName fieldName = field.getAnnotation(FieldName.class);
-//            String name = fieldName.value();
-//            JSONObject jsonObject1 = jsonObject.getJSONObject(name);
+                if (field.getType().equals(Boolean.class)) {
+                    FieldName fieldName = field.getAnnotation(FieldName.class);
+                    String name = fieldName.value();
+                    boolean b = jsonObject.getBoolean(name);
+                    LogUtils.v(TAG, "b:" + b);
+                }
             }
             return object;
         } catch (Exception e) {

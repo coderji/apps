@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.ji.tree.R;
 import com.ji.tree.app.local.AppData;
+import com.ji.tree.utils.ImageUtils;
 
 import java.util.List;
 
@@ -35,7 +36,7 @@ public class AppFragment extends Fragment implements AppContract.View {
         recyclerView.setLayoutManager(layoutManager);
         mAppAdapter = new AppAdapter(getActivity());
         recyclerView.setAdapter(mAppAdapter);
-        mPresenter.top();
+        mPresenter.getTop();
 
         return parent;
     }
@@ -53,11 +54,11 @@ public class AppFragment extends Fragment implements AppContract.View {
     }
 
     @Override
-    public void show(List<AppData> list) {
+    public void showTop(List<AppData> list) {
         if (mAppAdapter.getList() == null) {
             mAppAdapter.setList(list);
         }
-        mAppAdapter.notifyItemChanged(0);
+        mAppAdapter.notifyDataSetChanged();
     }
 
     private final static class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
@@ -85,7 +86,7 @@ public class AppFragment extends Fragment implements AppContract.View {
         public void onBindViewHolder(@NonNull Holder holder, int position) {
             AppData data = mList.get(position);
             holder.number.setText(String.valueOf(position + 1));
-
+            ImageUtils.with(holder.icon, data.iconUrl);
             holder.name.setText(data.name);
         }
 

@@ -8,12 +8,10 @@ import java.util.List;
 
 public interface AppContract {
     interface View extends BaseView<Presenter> {
-        void show(List<AppData> list);
+        void showTop(List<AppData> list);
     }
 
     interface Presenter extends BasePresenter {
-        void update();
-        void top();
-        void install();
+        void getTop();
     }
 }

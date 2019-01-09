@@ -1,6 +1,7 @@
 package com.ji.tree.app.local;
 
 public class AppData {
+
     public String iconUrl;
     public String name;
     public String packageName;

@@ -1,9 +1,12 @@
 package com.ji.tree.app.tencent;
 
+import com.ji.tree.utils.JsonUtils;
+
 import java.util.List;
 
 public class TopAppData {
-    public List<App> app;
+    @JsonUtils.FieldName("app")
+    public List<App> appList;
 
     public class App {
         public String iconUrl;

@@ -10,7 +10,8 @@ import com.ji.tree.app.tencent.TencentRepository;
 import com.ji.tree.gan.daily.DailyFragment;
 import com.ji.tree.gan.daily.DailyPresenter;
 import com.ji.tree.gan.GanRepository;
-import com.ji.tree.run.RunFragment;
+import com.ji.tree.utils.CrashUtils;
+import com.ji.tree.utils.InternetUtils;
 import com.ji.tree.utils.LogUtils;
 
 import androidx.fragment.app.Fragment;
@@ -19,42 +20,19 @@ import androidx.fragment.app.FragmentTransaction;
 
 public class MainActivity extends FragmentActivity {
     private static final String TAG = "MainActivity";
-    private Fragment mTopFragment, mRunFragment, mDailyFragment, mAppFragment;
+    private Fragment mTopFragment, mDailyFragment, mAppFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
 
+        InternetUtils.init(this);
+        CrashUtils.getInstance().init(this);
         setupFragment();
     }
 
     private void setupFragment() {
-        findViewById(R.id.main_btn_run).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mTopFragment instanceof RunFragment) {
-                    LogUtils.v(TAG, "mTopFragment is RunFragment");
-                } else {
-                    FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-                    final String tag = "RunFragment";
-                    mRunFragment = getSupportFragmentManager().findFragmentByTag(tag);
-                    if (mRunFragment == null) {
-                        LogUtils.d(TAG, "new RunFragment");
-                        mRunFragment = new RunFragment();
-                        fragmentTransaction.add(R.id.main_content, mRunFragment, tag);
-                    } else {
-                        fragmentTransaction.show(mRunFragment);
-                    }
-                    if (mTopFragment != null) {
-                        fragmentTransaction.hide(mTopFragment);
-                    }
-                    fragmentTransaction.commit();
-                    mTopFragment = mRunFragment;
-                }
-            }
-        });
-
         findViewById(R.id.main_btn_gan).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

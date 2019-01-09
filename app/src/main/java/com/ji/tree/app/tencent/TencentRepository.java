@@ -6,6 +6,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
 import com.ji.tree.app.local.AppData;
+import com.ji.tree.utils.WorkUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,15 +55,25 @@ public class TencentRepository {
         void onTop(List<AppData> list);
     }
 
-    public void top(final TopCallback callback) {
-        TopAppData topAppData = TencentApi.softTop(0, 10);
-        final ArrayList<AppData> appList = new ArrayList<>(topAppData.app.size());
-        for (TopAppData.App app : topAppData.app) {
-            final AppData appData = new AppData();
-            appData.iconUrl = app.iconUrl;
-            appData.name = app.name;
-            appList.add(appData);
-        }
-        callback.onTop(appList);
+    public void getTop(final TopCallback callback) {
+        WorkUtils.workExecute(new Runnable() {
+            @Override
+            public void run() {
+                TopAppData topAppData = TencentApi.softTop(0, 10);
+                final ArrayList<AppData> appList = new ArrayList<>(topAppData.app.size());
+                for (TopAppData.App app : topAppData.app) {
+                    final AppData appData = new AppData();
+                    appData.iconUrl = app.iconUrl;
+                    appData.name = app.name;
+                    appList.add(appData);
+                }
+                WorkUtils.uiExecute(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onTop(appList);
+                    }
+                });
+            }
+        });
     }
 }
