@@ -17,13 +17,6 @@
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/main_btn_gan"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="@string/gan" />
-
-        <Button
             android:id="@+id/main_btn_app"
             android:layout_width="0dp"
             android:layout_height="match_parent"

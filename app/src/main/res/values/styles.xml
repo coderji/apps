@@ -1,7 +1,10 @@
 <resources>
-
     <!-- Base application theme. -->
-    <style name="AppTheme">
+    <style name="AppTheme" parent="@android:style/Theme.DeviceDefault.Light.DarkActionBar">
+        <item name="android:buttonStyle">@style/btn</item>
     </style>
 
+    <style name="btn" parent="@android:style/Widget.DeviceDefault.Button">
+        <item name="android:background">@drawable/btn_bg</item>
+    </style>
 </resources>

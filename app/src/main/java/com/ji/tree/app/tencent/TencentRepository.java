@@ -13,42 +13,41 @@ import java.util.List;
 
 public class TencentRepository {
     private String TAG = "TencentRepository";
-    private Context mAppContext;
-
-    public TencentRepository(Context context) {
-        mAppContext = context.getApplicationContext();
-    }
 
     public interface UpdateCallback {
         void onUpdate(List<AppData> list);
     }
 
-    public void update(final UpdateCallback callback) {
-        PackageManager pm = mAppContext.getPackageManager();
-        List<PackageInfo> infoList = pm.getInstalledPackages(0);
-        final ArrayList<AppData> appList = new ArrayList<>(infoList.size());
-        for (PackageInfo info : infoList) {
-            if ((info.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {
-                final AppData appData = new AppData();
-                appData.name = info.applicationInfo.loadLabel(pm).toString();
-                appData.packageName = info.packageName;
-                appData.versionCode = info.versionCode;
+    public void getUpdate(final Context context, final UpdateCallback callback) {
+        WorkUtils.workExecute(new Runnable() {
+            @Override
+            public void run() {
+                PackageManager pm = context.getPackageManager();
+                List<PackageInfo> infoList = pm.getInstalledPackages(0);
+                final ArrayList<AppData> appList = new ArrayList<>(infoList.size());
+                for (PackageInfo info : infoList) {
+                    if ((info.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {
+                        final AppData appData = new AppData();
+                        appData.name = info.applicationInfo.loadLabel(pm).toString();
+                        appData.packageName = info.packageName;
+                        appData.versionCode = info.getLongVersionCode();
 
-                SearchAppData searchAppData = TencentApi.search(appData.name);
-                        for (int i = 0; i < 5; i++) {
-                            SearchAppData.AppDetail appDetail = searchAppData.obj.appDetails.get(i);
-                            if (appData.packageName.equals(appDetail.packageName)) {
-                                appData.iconUrl = appDetail.iconUrl;
-                                if (appData.versionCode < appDetail.versionCode) {
-                                    appList.add(appData);
-                                }
-                                break;
+                        List<AppData> list = TencentApi.getAppList(appData.name, null, null);
+                        if (list != null && list.get(0).packageName.equals(appData.packageName)) {
+                            if (appData.versionCode < list.get(0).versionCode) {
+                                appList.add(list.get(0));
                             }
                         }
-
+                    }
+                }
+                WorkUtils.uiExecute(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onUpdate(appList);
+                    }
+                });
             }
-        }
-        callback.onUpdate(appList);
+        });
     }
 
     public interface TopCallback {
@@ -59,18 +58,11 @@ public class TencentRepository {
         WorkUtils.workExecute(new Runnable() {
             @Override
             public void run() {
-                TopAppData topAppData = TencentApi.softTop(0, 10);
-                final ArrayList<AppData> appList = new ArrayList<>(topAppData.app.size());
-                for (TopAppData.App app : topAppData.app) {
-                    final AppData appData = new AppData();
-                    appData.iconUrl = app.iconUrl;
-                    appData.name = app.name;
-                    appList.add(appData);
-                }
+                final List<AppData> list = TencentApi.getTopList(0, 3);
                 WorkUtils.uiExecute(new Runnable() {
                     @Override
                     public void run() {
-                        callback.onTop(appList);
+                        callback.onTop(list);
                     }
                 });
             }

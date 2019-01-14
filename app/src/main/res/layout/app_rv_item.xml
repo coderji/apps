@@ -7,7 +7,7 @@
 
     <TextView
         android:id="@+id/app_iv_number"
-        android:layout_width="20dp"
+        android:layout_width="30dp"
         android:layout_height="wrap_content"
         android:paddingStart="4dp"
         android:paddingEnd="4dp" />
@@ -34,5 +34,5 @@
         android:layout_height="50dp"
         android:paddingStart="10dp"
         android:paddingEnd="10dp"
-        android:text="@string/app" />
+        android:text="@string/download" />
 </LinearLayout>

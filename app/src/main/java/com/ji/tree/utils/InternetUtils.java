@@ -10,24 +10,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
 
 import javax.net.ssl.HttpsURLConnection;
 
 public class InternetUtils {
     private static final String TAG = "InternetUtils";
-    private static String sCacheDir;
 
-    public static void init(Context context) {
-        if (sCacheDir == null) {
-            File file = context.getExternalCacheDir();
-            if (file != null) {
-                sCacheDir = file.getPath();
-            }
-        }
-    }
-
-    public static boolean isNetworkConnected(Context context) {
+    public static boolean isConnected(Context context) {
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (connectivityManager != null) {
             NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
@@ -39,6 +30,7 @@ public class InternetUtils {
     }
 
     public static String getString(String address) {
+        LogUtils.v(TAG, "getString address:" + address);
         StringBuilder sb = new StringBuilder();
         try {
             URL url = new URL(address);
@@ -61,15 +53,15 @@ public class InternetUtils {
     }
 
     public static File getFile(String address) {
-        File file = new File(sCacheDir + File.separator + format(address));
+        File file = new File(StorageUtils.getImageCacheDir() + File.separator + format(address));
         if (file.exists()) {
             return file;
         } else {
             try {
                 URL url = new URL(address);
-                HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 int responseCode = connection.getResponseCode();
-                if (responseCode == HttpsURLConnection.HTTP_OK) {
+                if (responseCode == HttpURLConnection.HTTP_OK) {
                     InputStream is = connection.getInputStream();
                     FileOutputStream fos = new FileOutputStream(file);
                     byte[] buffer = new byte[1024];
