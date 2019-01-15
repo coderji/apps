@@ -6,6 +6,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
 import com.ji.tree.app.local.AppData;
+import com.ji.tree.utils.InternetUtils;
+import com.ji.tree.utils.JsonUtils;
 import com.ji.tree.utils.WorkUtils;
 
 import java.util.ArrayList;
@@ -13,6 +15,31 @@ import java.util.List;
 
 public class TencentRepository {
     private String TAG = "TencentRepository";
+
+    public static List<AppData> getAppList(String kw, String pns, String sid) {
+        String s = InternetUtils.getString(
+                "https://sj.qq.com/myapp/searchAjax.htm?"
+                        + "&kw=" + kw
+                        + "&pns=" + pns
+                        + "&sid=" + sid);
+        SearchApps searchAppData = (SearchApps) JsonUtils.parse(s, SearchApps.class);
+        if (searchAppData != null) {
+            return searchAppData.getApps();
+        }
+        return null;
+    }
+
+    public static List<AppData> getTopList(int pageNo, int pageSize) {
+        String s = InternetUtils.getString(
+                "https://mapp.qzone.qq.com/cgi-bin/mapp/mapp_applist?apptype=soft_top&platform=touch"
+                        + "&pageNo=" + pageNo
+                        + "&pageSize=" + pageSize);
+        TopApps topAppData = (TopApps) JsonUtils.parse(s, TopApps.class);
+        if (topAppData != null) {
+            return topAppData.getApps();
+        }
+        return null;
+    }
 
     public interface UpdateCallback {
         void onUpdate(List<AppData> list);
@@ -32,7 +59,7 @@ public class TencentRepository {
                         appData.packageName = info.packageName;
                         appData.versionCode = info.getLongVersionCode();
 
-                        List<AppData> list = TencentApi.getAppList(appData.name, null, null);
+                        List<AppData> list = getAppList(appData.name, null, null);
                         if (list != null && list.get(0).packageName.equals(appData.packageName)) {
                             if (appData.versionCode < list.get(0).versionCode) {
                                 appList.add(list.get(0));
@@ -58,7 +85,7 @@ public class TencentRepository {
         WorkUtils.workExecute(new Runnable() {
             @Override
             public void run() {
-                final List<AppData> list = TencentApi.getTopList(0, 3);
+                final List<AppData> list = getTopList(0, 8);
                 WorkUtils.uiExecute(new Runnable() {
                     @Override
                     public void run() {

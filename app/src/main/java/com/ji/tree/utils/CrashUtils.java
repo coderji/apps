@@ -34,21 +34,15 @@ public class CrashUtils  {
     }
 
     private static void dumpException(Throwable e) {
-        String time = new SimpleDateFormat("yyyy-MM-dd[HH:mm:ss]", Locale.getDefault()).format(new Date());
+        String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
         File file = new File(StorageUtils.getCrashCacheDir() + File.separator + time);
         try {
             PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(file)));
-            pw.print(BuildConfig.VERSION_NAME);
-            pw.print(" ");
-            pw.println(BuildConfig.VERSION_CODE);
-
-            pw.print(Build.VERSION.RELEASE);
-            pw.print(" ");
-            pw.println(Build.VERSION.SDK_INT);
-
-            pw.println(Build.MANUFACTURER);
-            pw.println(Build.MODEL);
-
+            pw.println("VERSION:" + BuildConfig.VERSION_NAME
+                    + " Android:" + Build.VERSION.RELEASE
+                    + " SDK_INT:" + Build.VERSION.SDK_INT
+                    + " MANUFACTURER:" + Build.MANUFACTURER
+                    + " MODEL:" + Build.MODEL);
             e.printStackTrace(pw);
             pw.close();
         } catch (IOException ex) {
