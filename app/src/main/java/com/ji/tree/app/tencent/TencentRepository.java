@@ -85,7 +85,7 @@ public class TencentRepository {
         WorkUtils.workExecute(new Runnable() {
             @Override
             public void run() {
-                final List<AppData> list = getTopList(0, 8);
+                final List<AppData> list = getTopList(0, 30);
                 WorkUtils.uiExecute(new Runnable() {
                     @Override
                     public void run() {

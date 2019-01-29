@@ -44,6 +44,7 @@ public class TopApps {
             appData.iconUrl = app.iconUrl;
             appData.name = app.name;
             appData.packageName = app.packageName;
+            appData.apkUrl = app.apkUrl;
             appData.versionCode = app.versionCode;
             list.add(appData);
         }

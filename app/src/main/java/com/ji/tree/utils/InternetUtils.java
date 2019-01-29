@@ -80,7 +80,7 @@ public class InternetUtils {
         }
     }
 
-    private static String format(String s) {
+    public static String format(String s) {
         return s.replace(':', '[').replace('/', ']');
     }
 }

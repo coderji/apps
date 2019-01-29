@@ -6,42 +6,48 @@ import java.io.File;
 
 public class StorageUtils {
     private static final String TAG = "StorageUtils";
-    private static String sCacheDir;
+    private static String sExternalCacheDir;
+    private static String sImageCacheDir;
+    private static String sCrashCacheDir;
+    private static String sAppCacheDir;
 
     public static String initCacheDir(Context context) {
-        if (sCacheDir == null) {
+        if (sExternalCacheDir == null) {
             if (context.getExternalCacheDir() != null) {
-                sCacheDir = context.getExternalCacheDir().getPath();
-            } else {
-                sCacheDir = context.getCacheDir().getPath();
+                sExternalCacheDir = context.getExternalCacheDir().getPath();
+
+                File dir;
+                sImageCacheDir = sExternalCacheDir + File.separator + "image";
+                dir = new File(sImageCacheDir);
+                if (dir.exists() || dir.mkdir()) {
+                    LogUtils.v(TAG, "sImageCacheDir");
+                }
+
+                sCrashCacheDir = sExternalCacheDir + File.separator + "crash";
+                dir = new File(sCrashCacheDir);
+                if (dir.exists() || dir.mkdir()) {
+                    LogUtils.v(TAG, "sCrashCacheDir");
+                }
+
+                sAppCacheDir = sExternalCacheDir + File.separator + "app";
+                dir = new File(sAppCacheDir);
+                if (dir.exists() || dir.mkdir()) {
+                    LogUtils.v(TAG, "sAppCacheDir");
+                }
             }
         }
-        return sCacheDir;
+        return sExternalCacheDir;
     }
 
     public static String getImageCacheDir() {
-        File dir = new File(sCacheDir + File.separator + "image");
-        if (!dir.exists()) {
-            if (dir.mkdir()) {
-                LogUtils.v(TAG, "getImageCacheDir mk dir success");
-            } else {
-                LogUtils.v(TAG, "getImageCacheDir mk dir fail");
-            }
-
-        }
-        return dir.getPath();
+        return sImageCacheDir;
     }
 
     public static String getCrashCacheDir() {
-        File dir = new File(sCacheDir + File.separator + "crash");
-        if (!dir.exists()) {
-            if (dir.mkdir()) {
-                LogUtils.v(TAG, "getCrashCacheDir mk dir success");
-            } else {
-                LogUtils.v(TAG, "getCrashCacheDir mk dir fail");
-            }
+        return sCrashCacheDir;
+    }
 
-        }
-        return dir.getPath();
+    public static String getAppCacheDir() {
+        return sAppCacheDir;
     }
 }

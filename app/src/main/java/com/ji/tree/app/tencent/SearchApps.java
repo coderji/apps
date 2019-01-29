@@ -35,6 +35,7 @@ public class SearchApps {
             appData.iconUrl = app.iconurl;
             appData.name = app.name;
             appData.packageName = app.packageName;
+            appData.apkUrl = app.apkUrl;
             appData.versionCode = app.versionCode;
             list.add(appData);
         }

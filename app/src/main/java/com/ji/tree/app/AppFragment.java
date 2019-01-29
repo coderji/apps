@@ -1,7 +1,11 @@
 package com.ji.tree.app;
 
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +16,7 @@ import android.widget.TextView;
 import com.ji.tree.R;
 import com.ji.tree.app.local.AppData;
 import com.ji.tree.utils.ImageUtils;
+import com.ji.tree.utils.LogUtils;
 
 import java.util.List;
 
@@ -22,7 +27,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class AppFragment extends Fragment implements AppContract.View {
-    private String TAG = "AppFragment";
+    private static final String TAG = "AppFragment";
     private AppContract.Presenter mPresenter;
     private AppAdapter mAppAdapter;
 
@@ -42,9 +47,17 @@ public class AppFragment extends Fragment implements AppContract.View {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+
+        mAppAdapter.start();
+    }
+
+    @Override
     public void onStop() {
         super.onStop();
 
+        mAppAdapter.stop();
         mPresenter.unsubscribe();
     }
 
@@ -55,15 +68,25 @@ public class AppFragment extends Fragment implements AppContract.View {
 
     @Override
     public void showTop(List<AppData> list) {
-        if (mAppAdapter.getList() == null) {
-            mAppAdapter.setList(list);
-        }
+        mAppAdapter.setList(list);
         mAppAdapter.notifyDataSetChanged();
     }
 
     private final static class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         private Context mContext;
         private List<AppData> mList;
+        private AppDownloadService.DownloadBinder mAppDownloadBinder;
+
+        public void start() {
+            Intent intent = new Intent(mContext, AppDownloadService.class);
+            mContext.bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        }
+
+        public void stop() {
+            if (!mAppDownloadBinder.isDownloading()) {
+                mContext.unbindService(mServiceConnection);
+            }
+        }
 
         AppAdapter(Context context) {
             mContext = context;
@@ -73,8 +96,22 @@ public class AppFragment extends Fragment implements AppContract.View {
             mList = list;
         }
 
-        public List<AppData> getList() {
-            return mList;
+        @Override
+        public void onViewAttachedToWindow(Holder holder) {
+            super.onViewAttachedToWindow(holder);
+            LogUtils.v(TAG, "onViewAttachedToWindow " + holder);
+            if (mAppDownloadBinder != null) {
+                mAppDownloadBinder.registerUrl(mList.get(holder.getAdapterPosition()), holder.btn);
+            }
+        }
+
+        @Override
+        public void onViewDetachedFromWindow(Holder holder) {
+            super.onViewDetachedFromWindow(holder);
+            LogUtils.v(TAG, "onViewDetachedFromWindow " + holder);
+            if (mAppDownloadBinder != null) {
+                mAppDownloadBinder.unregisterUrl(mList.get(holder.getAdapterPosition()));
+            }
         }
 
         @Override
@@ -84,10 +121,22 @@ public class AppFragment extends Fragment implements AppContract.View {
 
         @Override
         public void onBindViewHolder(@NonNull Holder holder, int position) {
-            AppData data = mList.get(position);
+            LogUtils.v(TAG, "onBindViewHolder " + holder);
+            final AppData data = mList.get(position);
             holder.number.setText(String.valueOf(position + 1));
             ImageUtils.with(holder.icon, data.iconUrl);
             holder.name.setText(data.name);
+            if (mAppDownloadBinder != null) {
+                holder.btn.setText(mAppDownloadBinder.getDisplayString(data));
+                holder.btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (mAppDownloadBinder != null) {
+                            mAppDownloadBinder.click(data);
+                        }
+                    }
+                });
+            }
         }
 
         @Override
@@ -110,5 +159,19 @@ public class AppFragment extends Fragment implements AppContract.View {
                 btn = itemView.findViewById(R.id.app_iv_btn);
             }
         }
+
+        private ServiceConnection mServiceConnection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                LogUtils.v(TAG, "onServiceConnected");
+                mAppDownloadBinder = (AppDownloadService.DownloadBinder) service;
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                LogUtils.v(TAG, "onServiceDisconnected");
+                mAppDownloadBinder = null;
+            }
+        };
     }
 }

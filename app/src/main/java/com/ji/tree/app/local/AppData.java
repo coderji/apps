@@ -5,12 +5,25 @@ public class AppData {
     public String name;
     public String packageName;
     public long versionCode;
+    public String apkUrl;
+    public long fileSize;
+    public long downloadSize;
+    public int state;
+
+    @Override
+    public boolean equals(Object object) {
+        return object instanceof AppData && ((AppData) object).apkUrl.equals(apkUrl);
+    }
 
     @Override
     public String toString() {
         return "AppData iconUrl:" + iconUrl
                 + " name:" + name
                 + " packageName:" + packageName
-                + " versionCode:" + versionCode;
+                + " versionCode:" + versionCode
+                + " apkUrl:" + apkUrl
+                + " fileSize:" + fileSize
+                + " downloadSize:" + downloadSize
+                + " state:" + state;
     }
 }

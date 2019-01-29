@@ -34,7 +34,7 @@ public class CrashUtils  {
     }
 
     private static void dumpException(Throwable e) {
-        String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+        String time = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss", Locale.getDefault()).format(new Date());
         File file = new File(StorageUtils.getCrashCacheDir() + File.separator + time);
         try {
             PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(file)));

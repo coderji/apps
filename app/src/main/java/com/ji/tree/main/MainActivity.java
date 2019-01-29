@@ -19,6 +19,7 @@ import androidx.fragment.app.FragmentTransaction;
 public class MainActivity extends FragmentActivity {
     private static final String TAG = "MainActivity";
     private Fragment mTopFragment, mAppFragment;
+    private boolean mResume = false;
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -39,30 +40,36 @@ public class MainActivity extends FragmentActivity {
     }
 
     private void setupFragment() {
+        setAppFragment();
+
         findViewById(R.id.main_btn_app).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mTopFragment instanceof AppFragment) {
                     LogUtils.v(TAG, "mTopFragment is AppFragment");
                 } else {
-                    FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-                    final String tag = "AppFragment";
-                    mAppFragment = getSupportFragmentManager().findFragmentByTag(tag);
-                    if (mAppFragment == null) {
-                        LogUtils.d(TAG, "new AppFragment");
-                        mAppFragment = new AppFragment();
-                        new AppPresenter((AppFragment) mAppFragment, new TencentRepository());
-                        fragmentTransaction.add(R.id.main_content, mAppFragment, tag);
-                    } else {
-                        fragmentTransaction.show(mAppFragment);
-                    }
-                    if (mTopFragment != null) {
-                        fragmentTransaction.hide(mTopFragment);
-                    }
-                    fragmentTransaction.commit();
-                    mTopFragment = mAppFragment;
+                    setAppFragment();
                 }
             }
         });
+    }
+
+    private void setAppFragment() {
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        final String tag = "AppFragment";
+        mAppFragment = getSupportFragmentManager().findFragmentByTag(tag);
+        if (mAppFragment == null) {
+            LogUtils.d(TAG, "new AppFragment");
+            mAppFragment = new AppFragment();
+            new AppPresenter((AppFragment) mAppFragment, new TencentRepository());
+            fragmentTransaction.add(R.id.main_content, mAppFragment, tag);
+        } else {
+            fragmentTransaction.show(mAppFragment);
+        }
+        if (mTopFragment != null) {
+            fragmentTransaction.hide(mTopFragment);
+        }
+        fragmentTransaction.commit();
+        mTopFragment = mAppFragment;
     }
 }
