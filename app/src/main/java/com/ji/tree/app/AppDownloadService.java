@@ -9,8 +9,6 @@ import android.widget.Button;
 
 import com.ji.tree.R;
 import com.ji.tree.app.local.AppData;
-import com.ji.tree.main.MainActivity;
-import com.ji.tree.main.MainApplication;
 import com.ji.tree.utils.InternetUtils;
 import com.ji.tree.utils.LogUtils;
 import com.ji.tree.utils.StorageUtils;
@@ -143,16 +141,16 @@ public class AppDownloadService extends Service {
                     raf.write(buffer, 0, length);
                     data.downloadSize += length;
                     Button button = mButtonMap.get(data.apkUrl);
-                    if (button != null && MainApplication.isResumed(button.getContext())) {
-                        WorkUtils.uiExecute(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (mButtonMap.get(data.apkUrl) != null) {
-                                    mButtonMap.get(data.apkUrl).setText(String.valueOf(data.downloadSize));
-                                }
-                            }
-                        });
-                    }
+//                    if (button != null && MainApplication.isResumed(button.getContext())) {
+//                        WorkUtils.uiExecute(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                if (mButtonMap.get(data.apkUrl) != null) {
+//                                    mButtonMap.get(data.apkUrl).setText(String.valueOf(data.downloadSize));
+//                                }
+//                            }
+//                        });
+//                    }
                 }
                 raf.close();
                 is.close();

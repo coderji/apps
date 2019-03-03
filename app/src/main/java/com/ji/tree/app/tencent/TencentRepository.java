@@ -4,10 +4,12 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.util.Log;
 
 import com.ji.tree.app.local.AppData;
 import com.ji.tree.utils.InternetUtils;
 import com.ji.tree.utils.JsonUtils;
+import com.ji.tree.utils.LogUtils;
 import com.ji.tree.utils.WorkUtils;
 
 import java.util.ArrayList;
@@ -94,5 +96,10 @@ public class TencentRepository {
                 });
             }
         });
+    }
+
+    public static void main(String[] args) {
+        //Log.v("TAG", "xx");
+        getTopList(1 , 2);
     }
 }

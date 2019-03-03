@@ -19,7 +19,6 @@ import androidx.fragment.app.FragmentTransaction;
 public class MainActivity extends FragmentActivity {
     private static final String TAG = "MainActivity";
     private Fragment mTopFragment, mAppFragment;
-    private boolean mResume = false;
 
     @Override
     protected void attachBaseContext(Context newBase) {

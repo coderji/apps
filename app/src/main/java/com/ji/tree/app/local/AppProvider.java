@@ -10,8 +10,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
+
 public class AppProvider extends ContentProvider {
-    public static final String AUTHORITY = "app.local.AppProvider";
+    public static final String AUTHORITY = "com.ji.tree.app.local";
     public static String TABLE_DATA = "data";
     public static class Columns {
         public static String DATA_ICON_URL = "iconUrl";
@@ -38,7 +40,7 @@ public class AppProvider extends ContentProvider {
     }
 
     @Override
-    public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+    public Cursor query(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         SQLiteDatabase database = mAppSQLiteOpenHelper.getWritableDatabase();
         if (sMatcher.match(uri) == CODE_DATA) {
             return database.query(TABLE_DATA, projection, selection, selectionArgs, null, null, null);
@@ -47,12 +49,12 @@ public class AppProvider extends ContentProvider {
     }
 
     @Override
-    public String getType(Uri uri) {
+    public String getType(@NonNull Uri uri) {
         return null;
     }
 
     @Override
-    public Uri insert(Uri uri, ContentValues values) {
+    public Uri insert(@NonNull Uri uri, ContentValues values) {
         SQLiteDatabase database = mAppSQLiteOpenHelper.getWritableDatabase();
         if (sMatcher.match(uri) == CODE_DATA) {
             long rowId = database.insert(TABLE_DATA, null, values);
@@ -66,7 +68,7 @@ public class AppProvider extends ContentProvider {
     }
 
     @Override
-    public int delete(Uri uri, String selection, String[] selectionArgs) {
+    public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
         SQLiteDatabase database = mAppSQLiteOpenHelper.getWritableDatabase();
         if (sMatcher.match(uri) == CODE_DATA) {
             return database.delete(TABLE_DATA, selection, selectionArgs);
@@ -75,7 +77,7 @@ public class AppProvider extends ContentProvider {
     }
 
     @Override
-    public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+    public int update(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         SQLiteDatabase database = mAppSQLiteOpenHelper.getWritableDatabase();
         if (sMatcher.match(uri) == CODE_DATA) {
             return database.update(TABLE_DATA, values, selection, selectionArgs);
@@ -87,7 +89,7 @@ public class AppProvider extends ContentProvider {
         private static String DATABASE_NAME = "app";
         private static int DATABASE_VERSION = 1;
 
-        public AppSQLiteOpenHelper(Context context) {
+        AppSQLiteOpenHelper(Context context) {
             super(context, DATABASE_NAME, null, DATABASE_VERSION);
         }
 

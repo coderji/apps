@@ -4,12 +4,12 @@
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:name=".main.MainApplication"
         android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/AppTheme">
 
@@ -28,5 +28,8 @@
             android:authorities="app.local.AppProvider"
             android:name="com.ji.tree.app.local.AppProvider"
             android:exported="false" />
+
+        <service android:name=".app.AppsJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 </manifest>

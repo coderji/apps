@@ -12,7 +12,7 @@ public class AppData {
 
     @Override
     public boolean equals(Object object) {
-        return object instanceof AppData && ((AppData) object).apkUrl.equals(apkUrl);
+        return object instanceof AppData && ((AppData) object).packageName.equals(packageName);
     }
 
     @Override

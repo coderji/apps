@@ -97,7 +97,7 @@ public class AppFragment extends Fragment implements AppContract.View {
         }
 
         @Override
-        public void onViewAttachedToWindow(Holder holder) {
+        public void onViewAttachedToWindow(@NonNull Holder holder) {
             super.onViewAttachedToWindow(holder);
             LogUtils.v(TAG, "onViewAttachedToWindow " + holder);
             if (mAppDownloadBinder != null) {
@@ -106,7 +106,7 @@ public class AppFragment extends Fragment implements AppContract.View {
         }
 
         @Override
-        public void onViewDetachedFromWindow(Holder holder) {
+        public void onViewDetachedFromWindow(@NonNull Holder holder) {
             super.onViewDetachedFromWindow(holder);
             LogUtils.v(TAG, "onViewDetachedFromWindow " + holder);
             if (mAppDownloadBinder != null) {
