@@ -1,11 +1,11 @@
-package com.ji.tree.utils;
+package com.ji.utils;
 
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 
-public class WorkUtils {
-    private static final String TAG = "WorkUtils";
+public class ThreadUtils {
+    private static final String TAG = "ThreadUtils";
     private static final Handler sHandler = new Handler(Looper.getMainLooper());
 
     public static void workExecute(Runnable runnable) {

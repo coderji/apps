@@ -1,7 +1,7 @@
 package com.ji.tree.app.tencent;
 
 import com.ji.tree.app.local.AppData;
-import com.ji.tree.utils.JsonUtils;
+import com.ji.utils.JsonUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,11 +9,6 @@ import java.util.List;
 public class TopApps {
     @JsonUtils.FieldName("app")
     private List<App> appList;
-
-    @Override
-    public String toString() {
-        return "appList:" + appList;
-    }
 
     public static class App {
         @JsonUtils.FieldName("iconurl")
@@ -27,14 +22,8 @@ public class TopApps {
         @JsonUtils.FieldName("versionCode")
         private long versionCode;
 
-        @Override
-        public String toString() {
-            return "iconUrl:" + iconUrl
-                    + " name:" + name
-                    + " packageName:" + packageName
-                    + " apkUrl:" + apkUrl
-                    + " versionCode:" + versionCode;
-        }
+        @JsonUtils.FieldName("size")
+        private String size;
     }
 
     public List<AppData> getApps() {
@@ -43,6 +32,7 @@ public class TopApps {
             AppData appData = new AppData();
             appData.iconUrl = app.iconUrl;
             appData.name = app.name;
+            appData.detail = app.size;
             appData.packageName = app.packageName;
             appData.apkUrl = app.apkUrl;
             appData.versionCode = app.versionCode;

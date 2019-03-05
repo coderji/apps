@@ -1,4 +1,4 @@
-package com.ji.tree.utils;
+package com.ji.utils;
 
 import android.content.Context;
 import android.os.Build;
@@ -35,7 +35,7 @@ public class CrashUtils  {
 
     private static void dumpException(Throwable e) {
         String time = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss", Locale.getDefault()).format(new Date());
-        File file = new File(StorageUtils.getCrashCacheDir() + File.separator + time);
+        File file = new File(DiskUtils.getCrashCacheDir() + File.separator + time);
         try {
             PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(file)));
             pw.println("VERSION:" + BuildConfig.VERSION_NAME

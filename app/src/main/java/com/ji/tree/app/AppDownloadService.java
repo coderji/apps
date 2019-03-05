@@ -4,15 +4,15 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.util.ArrayMap;
+import android.view.View;
 import android.widget.Button;
 
 import com.ji.tree.R;
 import com.ji.tree.app.local.AppData;
-import com.ji.tree.utils.InternetUtils;
-import com.ji.tree.utils.LogUtils;
-import com.ji.tree.utils.StorageUtils;
-import com.ji.tree.utils.WorkUtils;
+import com.ji.utils.CommonUtils;
+import com.ji.utils.DiskUtils;
+import com.ji.utils.LogUtils;
+import com.ji.utils.ThreadUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,81 +20,158 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class AppDownloadService extends Service {
     private static final String TAG = "AppDownloadService";
-    public static final int STATE_START = 1, STATE_STOP = 2, STATE_FINISH = 3, STATE_WAIT = 4;
-    private ArrayMap<String, AppData> mDownloadingMap = new ArrayMap<>();
-    private ArrayMap<String, AppData> mWaitingMap = new ArrayMap<>();
-    private ArrayMap<String, Button> mButtonMap = new ArrayMap<>();
+    private static final int START_STATE = 1, NONE_STATE = 2;
+    private static final int START_MAX = 1;
+    private ArrayList<AppData> mStartList = new ArrayList<>();
+    private ArrayList<AppData> mWaitingList = new ArrayList<>();
+    private HashMap<String, Button> mButtonMap = new HashMap<>();
 
     public class DownloadBinder extends Binder {
-        public void click(final AppData data) {
-            LogUtils.v(TAG, "click data:" + data);
-            WorkUtils.workExecute(new Runnable() {
+        public void with(final Button button, final AppData data) {
+            if (mButtonMap.containsKey(data.packageName)) {
+                mButtonMap.put(data.packageName, button);
+            }
+            button.setTag(data.packageName);
+            button.setText(getStateString(data));
+            button.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void run() {
-                    AppData appData;
-                    if (mDownloadingMap.containsKey(data.apkUrl)) {
-                        appData = mDownloadingMap.get(data.apkUrl);
-                        appData.state = STATE_STOP;
-                        mDownloadingMap.remove(appData.apkUrl);
+                public void onClick(View v) {
+                    for (AppData start : mStartList) {
+                        if (start.equals(data)) {
+                            start.state = NONE_STATE;
+                            mStartList.remove(start);
 
-                        if (!mWaitingMap.isEmpty()) {
-                            AppData nextData = mWaitingMap.removeAt(0);
-                            nextData.state = STATE_START;
-                            mDownloadingMap.put(nextData.apkUrl, nextData);
-                            downloadApp(nextData);
-                        }
-                    } else {
-                        appData = data;
-                        if (mDownloadingMap.size() >= 2) {
-                            if (mWaitingMap.containsKey(appData.apkUrl)) {
-                                mWaitingMap.remove(appData.apkUrl);
-                            } else {
-                                mWaitingMap.put(appData.apkUrl, appData);
+                            if (!mWaitingList.isEmpty()) {
+                                AppData waiting = mWaitingList.remove(0);
+                                waiting.state = START_STATE;
+                                mStartList.add(waiting);
+
+                                downloadApp(button, waiting);
                             }
-                        } else {
-                            appData.state = STATE_START;
-                            mDownloadingMap.put(appData.apkUrl, appData);
-                            downloadApp(appData);
+
+                            return;
                         }
+                    }
+
+                    for (AppData waiting : mWaitingList) {
+                        if (waiting.equals(data)) {
+                            waiting.state = NONE_STATE;
+                            mWaitingList.remove(waiting);
+                            button.setText(R.string.download);
+                            return;
+                        }
+                    }
+
+                    if (mStartList.size() < START_MAX) {
+                        data.state = START_STATE;
+                        mStartList.add(data);
+
+                        downloadApp(button, data);
+                    } else {
+                        mWaitingList.add(data);
+                        button.setText(R.string.waiting);
                     }
                 }
             });
         }
 
-        public void longClick(final AppData data) {
-
-        }
-
-        public void registerUrl(AppData data, Button button) {
-            mButtonMap.put(data.apkUrl, button);
-        }
-
-        public void unregisterUrl(AppData data) {
-            mButtonMap.remove(data.apkUrl);
-        }
-
-        public boolean isDownloading() {
-            return !mDownloadingMap.isEmpty();
-        }
-
-        public String getDisplayString(final AppData data) {
-            AppData appData = mDownloadingMap.get(data.apkUrl);
-            if (appData != null) {
-                if (appData.state == STATE_START) {
-                    return String.valueOf(appData.downloadSize);
+        private String getStateString(final AppData data) {
+            for (AppData wait : mWaitingList) {
+                if (wait.equals(data)) {
+                    return getString(R.string.waiting);
                 }
             }
             return getString(R.string.download);
+        }
+
+        private void downloadApp(final Button button, final AppData data) {
+            ThreadUtils.workExecute(new Runnable() {
+                @Override
+                public void run() {
+                    LogUtils.v(TAG, "downloadApp begin button:" + Integer.toHexString(System.identityHashCode(button)) + " data:" + data.packageName);
+                    mButtonMap.put(data.packageName, button);
+
+                    try {
+                        RandomAccessFile raf = new RandomAccessFile(
+                                DiskUtils.getAppCacheDir() + File.separator + DiskUtils.addressToPath(data.apkUrl),
+                                "rwd");
+                        LogUtils.v(TAG, "raf.length:" + raf.length());
+                        data.downloadSize = raf.length();
+                        URL url = new URL(data.apkUrl);
+                        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                        int responseCode = connection.getResponseCode();
+                        if (responseCode == HttpURLConnection.HTTP_OK) {
+                            int contentLength = connection.getHeaderFieldInt("Content-Length", 0);
+                            LogUtils.v(TAG, "downloadApp contentLength:" + contentLength);
+                            InputStream is = connection.getInputStream();
+                            byte[] buffer = new byte[1024];
+                            int length;
+                            raf.seek(data.downloadSize);
+                            while (data.state == START_STATE && (length = is.read(buffer)) != -1) {
+try {Thread.sleep(3000); } catch (Exception e) {}
+                                raf.write(buffer, 0, length);
+                                data.downloadSize += length;
+
+                                final Button b = mButtonMap.get(data.packageName);
+                                LogUtils.v(TAG, "--" + data.packageName + " " + b);
+                                if (b != null) {
+                                    if (data.packageName.equals(b.getTag())) {
+                                        ThreadUtils.uiExecute(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                if (data.packageName.equals(b.getTag())) {
+                                                    b.setText(CommonUtils.byte2FitMemorySize(data.downloadSize));
+                                                }
+                                            }
+                                        });
+                                    } else {
+                                        mButtonMap.remove(data.packageName);
+                                    }
+                                }
+                            }
+                            raf.close();
+                            is.close();
+
+                            for (AppData start : mStartList) {
+                                if (start.equals(data)) {
+                                    mStartList.remove(start);
+
+                                    if (!mWaitingList.isEmpty()) {
+                                        AppData waiting = mWaitingList.remove(0);
+                                        waiting.state = START_STATE;
+                                        mStartList.add(waiting);
+
+                                        downloadApp(button, waiting);
+                                    }
+
+                                    return;
+                                }
+                            }
+                        }
+                    } catch (IOException e) {
+                        LogUtils.e(TAG, "downloadApp apkUrl:" + data.apkUrl, e);
+                    }
+
+                    mButtonMap.remove(data.packageName);
+                    LogUtils.v(TAG, "downloadApp end button:" + Integer.toHexString(System.identityHashCode(button)) + " data:" + data.packageName);
+                }
+            });
+        }
+
+        public boolean isDownloading() {
+            return !mStartList.isEmpty();
         }
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        LogUtils.v(TAG, "onCreate " + this + " mDownloadingMap:" + mDownloadingMap);
+        LogUtils.v(TAG, "onCreate " + this);
     }
 
     @Override
@@ -119,51 +196,5 @@ public class AppDownloadService extends Service {
     public boolean onUnbind(Intent intent) {
         LogUtils.v(TAG, "onUnbind " + this);
         return super.onUnbind(intent);
-    }
-
-    private void downloadApp(final AppData data) {
-        try {
-            RandomAccessFile raf = new RandomAccessFile(
-                    StorageUtils.getAppCacheDir() + File.separator + InternetUtils.format(data.apkUrl),
-                    "rwd");
-            LogUtils.v(TAG, "raf.length:" + raf.length());
-            URL url = new URL(data.apkUrl);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            int responseCode = connection.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                int contentLength = connection.getHeaderFieldInt("Content-Length", 0);
-                LogUtils.v(TAG, "downloadApp contentLength:" + contentLength);
-                InputStream is = connection.getInputStream();
-                byte[] buffer = new byte[1024];
-                int length;
-                raf.seek(data.downloadSize);
-                while (data.state == STATE_START && (length = is.read(buffer)) != -1) {
-                    raf.write(buffer, 0, length);
-                    data.downloadSize += length;
-                    Button button = mButtonMap.get(data.apkUrl);
-//                    if (button != null && MainApplication.isResumed(button.getContext())) {
-//                        WorkUtils.uiExecute(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                if (mButtonMap.get(data.apkUrl) != null) {
-//                                    mButtonMap.get(data.apkUrl).setText(String.valueOf(data.downloadSize));
-//                                }
-//                            }
-//                        });
-//                    }
-                }
-                raf.close();
-                is.close();
-                mDownloadingMap.remove(data.apkUrl);
-                if (!mWaitingMap.isEmpty()) {
-                    AppData nextData = mWaitingMap.removeAt(0);
-                    nextData.state = STATE_START;
-                    mDownloadingMap.put(nextData.apkUrl, nextData);
-                    downloadApp(nextData);
-                }
-            }
-        } catch (IOException e) {
-            LogUtils.e(TAG, "getApp apkUrl:" + data.apkUrl, e);
-        }
     }
 }

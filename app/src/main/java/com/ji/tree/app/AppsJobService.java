@@ -5,7 +5,7 @@ import android.app.job.JobParameters;
 import android.app.job.JobService;
 import android.os.Build;
 
-import com.ji.tree.utils.LogUtils;
+import com.ji.utils.LogUtils;
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class AppsJobService extends JobService {

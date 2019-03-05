@@ -4,19 +4,18 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.util.Log;
 
 import com.ji.tree.app.local.AppData;
-import com.ji.tree.utils.InternetUtils;
-import com.ji.tree.utils.JsonUtils;
-import com.ji.tree.utils.LogUtils;
-import com.ji.tree.utils.WorkUtils;
+import com.ji.utils.InternetUtils;
+import com.ji.utils.JsonUtils;
+import com.ji.utils.LogUtils;
+import com.ji.utils.ThreadUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class TencentRepository {
-    private String TAG = "TencentRepository";
+    private static String TAG = "TencentRepository";
 
     public static List<AppData> getAppList(String kw, String pns, String sid) {
         String s = InternetUtils.getString(
@@ -48,7 +47,7 @@ public class TencentRepository {
     }
 
     public void getUpdate(final Context context, final UpdateCallback callback) {
-        WorkUtils.workExecute(new Runnable() {
+        ThreadUtils.workExecute(new Runnable() {
             @Override
             public void run() {
                 PackageManager pm = context.getPackageManager();
@@ -69,7 +68,7 @@ public class TencentRepository {
                         }
                     }
                 }
-                WorkUtils.uiExecute(new Runnable() {
+                ThreadUtils.uiExecute(new Runnable() {
                     @Override
                     public void run() {
                         callback.onUpdate(appList);
@@ -84,11 +83,11 @@ public class TencentRepository {
     }
 
     public void getTop(final TopCallback callback) {
-        WorkUtils.workExecute(new Runnable() {
+        ThreadUtils.workExecute(new Runnable() {
             @Override
             public void run() {
                 final List<AppData> list = getTopList(0, 30);
-                WorkUtils.uiExecute(new Runnable() {
+                ThreadUtils.uiExecute(new Runnable() {
                     @Override
                     public void run() {
                         callback.onTop(list);
@@ -99,7 +98,6 @@ public class TencentRepository {
     }
 
     public static void main(String[] args) {
-        //Log.v("TAG", "xx");
-        getTopList(1 , 2);
+        LogUtils.v(TAG, "getTopList " + getTopList(1 , 2));
     }
 }

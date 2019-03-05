@@ -15,8 +15,8 @@ import android.widget.TextView;
 
 import com.ji.tree.R;
 import com.ji.tree.app.local.AppData;
-import com.ji.tree.utils.ImageUtils;
-import com.ji.tree.utils.LogUtils;
+import com.ji.utils.ImageUtils;
+import com.ji.utils.LogUtils;
 
 import java.util.List;
 
@@ -41,6 +41,7 @@ public class AppFragment extends Fragment implements AppContract.View {
         recyclerView.setLayoutManager(layoutManager);
         mAppAdapter = new AppAdapter(getActivity());
         recyclerView.setAdapter(mAppAdapter);
+
         mPresenter.getTop();
 
         return parent;
@@ -78,12 +79,17 @@ public class AppFragment extends Fragment implements AppContract.View {
         private AppDownloadService.DownloadBinder mAppDownloadBinder;
 
         public void start() {
-            Intent intent = new Intent(mContext, AppDownloadService.class);
-            mContext.bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+            LogUtils.v(TAG, "AppAdapter start");
+            if (mAppDownloadBinder == null) {
+                Intent intent = new Intent(mContext, AppDownloadService.class);
+                mContext.bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+            }
         }
 
         public void stop() {
-            if (!mAppDownloadBinder.isDownloading()) {
+            LogUtils.v(TAG, "AppAdapter stop");
+            if (mAppDownloadBinder != null && !mAppDownloadBinder.isDownloading()) {
+                mAppDownloadBinder = null;
                 mContext.unbindService(mServiceConnection);
             }
         }
@@ -94,24 +100,6 @@ public class AppFragment extends Fragment implements AppContract.View {
 
         public void setList(List<AppData> list) {
             mList = list;
-        }
-
-        @Override
-        public void onViewAttachedToWindow(@NonNull Holder holder) {
-            super.onViewAttachedToWindow(holder);
-            LogUtils.v(TAG, "onViewAttachedToWindow " + holder);
-            if (mAppDownloadBinder != null) {
-                mAppDownloadBinder.registerUrl(mList.get(holder.getAdapterPosition()), holder.btn);
-            }
-        }
-
-        @Override
-        public void onViewDetachedFromWindow(@NonNull Holder holder) {
-            super.onViewDetachedFromWindow(holder);
-            LogUtils.v(TAG, "onViewDetachedFromWindow " + holder);
-            if (mAppDownloadBinder != null) {
-                mAppDownloadBinder.unregisterUrl(mList.get(holder.getAdapterPosition()));
-            }
         }
 
         @Override
@@ -126,16 +114,9 @@ public class AppFragment extends Fragment implements AppContract.View {
             holder.number.setText(String.valueOf(position + 1));
             ImageUtils.with(holder.icon, data.iconUrl);
             holder.name.setText(data.name);
+            holder.detail.setText(data.detail);
             if (mAppDownloadBinder != null) {
-                holder.btn.setText(mAppDownloadBinder.getDisplayString(data));
-                holder.btn.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (mAppDownloadBinder != null) {
-                            mAppDownloadBinder.click(data);
-                        }
-                    }
-                });
+                mAppDownloadBinder.with(holder.btn, data);
             }
         }
 
@@ -148,6 +129,7 @@ public class AppFragment extends Fragment implements AppContract.View {
             TextView number;
             ImageView icon;
             TextView name;
+            TextView detail;
             Button btn;
 
             private Holder(View itemView) {
@@ -156,6 +138,7 @@ public class AppFragment extends Fragment implements AppContract.View {
                 number = itemView.findViewById(R.id.app_iv_number);
                 icon = itemView.findViewById(R.id.app_iv_icon);
                 name = itemView.findViewById(R.id.app_iv_name);
+                detail = itemView.findViewById(R.id.app_iv_detail);
                 btn = itemView.findViewById(R.id.app_iv_btn);
             }
         }

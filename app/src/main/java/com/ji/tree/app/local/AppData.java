@@ -3,6 +3,7 @@ package com.ji.tree.app.local;
 public class AppData {
     public String iconUrl;
     public String name;
+    public String detail;
     public String packageName;
     public long versionCode;
     public String apkUrl;
@@ -19,6 +20,7 @@ public class AppData {
     public String toString() {
         return "AppData iconUrl:" + iconUrl
                 + " name:" + name
+                + " detail:" + detail
                 + " packageName:" + packageName
                 + " versionCode:" + versionCode
                 + " apkUrl:" + apkUrl

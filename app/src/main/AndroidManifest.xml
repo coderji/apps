@@ -25,7 +25,7 @@
         <service android:name=".app.AppDownloadService" />
 
         <provider
-            android:authorities="app.local.AppProvider"
+            android:authorities="com.ji.tree.app.local"
             android:name="com.ji.tree.app.local.AppProvider"
             android:exported="false" />
 

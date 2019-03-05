@@ -10,7 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 
-import com.ji.tree.utils.LogUtils;
+import com.ji.utils.LogUtils;
 
 public class AppsReceiver extends BroadcastReceiver {
     private static final String TAG = "AppsReceiver";

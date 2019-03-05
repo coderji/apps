@@ -1,17 +1,17 @@
-package com.ji.tree.utils;
+package com.ji.utils;
 
 import android.content.Context;
 
 import java.io.File;
 
-public class StorageUtils {
-    private static final String TAG = "StorageUtils";
+public class DiskUtils {
+    private static final String TAG = "DiskUtils";
     private static String sExternalCacheDir;
     private static String sImageCacheDir;
     private static String sCrashCacheDir;
     private static String sAppCacheDir;
 
-    public static String initCacheDir(Context context) {
+    public static void initCacheDir(Context context) {
         if (sExternalCacheDir == null) {
             if (context.getExternalCacheDir() != null) {
                 sExternalCacheDir = context.getExternalCacheDir().getPath();
@@ -36,7 +36,6 @@ public class StorageUtils {
                 }
             }
         }
-        return sExternalCacheDir;
     }
 
     public static String getImageCacheDir() {
@@ -49,5 +48,17 @@ public class StorageUtils {
 
     public static String getAppCacheDir() {
         return sAppCacheDir;
+    }
+
+    public static String addressToPath(String s) {
+        return s.replace(':', '[').replace('/', ']');
+    }
+
+    public static File getFile(String address, String dir) {
+        File cacheFile = new File(dir + File.separator + addressToPath(address));
+        if (cacheFile.exists()) {
+            return cacheFile;
+        }
+        return null;
     }
 }

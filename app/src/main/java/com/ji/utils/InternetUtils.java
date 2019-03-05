@@ -1,8 +1,4 @@
-package com.ji.tree.utils;
-
-import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+package com.ji.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -17,17 +13,6 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class InternetUtils {
     private static final String TAG = "InternetUtils";
-
-    public static boolean isConnected(Context context) {
-        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (connectivityManager != null) {
-            NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-            if (networkInfo != null && networkInfo.isConnected()) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     public static String getString(String address) {
         LogUtils.v(TAG, "getString address:" + address);
@@ -52,8 +37,8 @@ public class InternetUtils {
         return sb.toString();
     }
 
-    public static File getFile(String address) {
-        File file = new File(StorageUtils.getImageCacheDir() + File.separator + format(address));
+    public static File getFile(String address, String dir) {
+        File file = new File(dir + File.separator + DiskUtils.addressToPath(address));
         if (file.exists()) {
             return file;
         } else {
@@ -78,9 +63,5 @@ public class InternetUtils {
             }
             return file;
         }
-    }
-
-    public static String format(String s) {
-        return s.replace(':', '[').replace('/', ']');
     }
 }

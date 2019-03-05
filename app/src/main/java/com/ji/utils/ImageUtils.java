@@ -1,4 +1,4 @@
-package com.ji.tree.utils;
+package com.ji.utils;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -7,8 +7,8 @@ import android.widget.ImageView;
 
 import java.io.File;
 
-public class BitmapCacheUtils {
-    private static final String TAG = "BitmapCacheUtils";
+public class ImageUtils {
+    private static final String TAG = "ImageUtils";
     private static LruCache<String, Bitmap> mBitmapLruCache;
 
     public static void create() {
@@ -39,26 +39,20 @@ public class BitmapCacheUtils {
         }
     }
 
-    private static int calculateInSampleSize(int width, int height, int reqWidth, int reqHeight) {
-        int sampleSize = 1;
-        if (reqWidth != 0 && reqHeight != 0) {
-            while (width / sampleSize >= reqWidth && height / sampleSize >= reqHeight) {
-                sampleSize = sampleSize * 2;
-            }
-        }
-        return sampleSize;
+    public static void with(final ImageView imageView, final String address) {
+        with(imageView, address, 0, 0);
     }
 
-    public static void bindBitmap(final ImageView imageView, final String path, final int reqWidth, final int reqHeight) {
-        LogUtils.v(TAG, "bindBitmap path:" + path + " reqWidth:" + reqWidth + " reqHeight:" + reqHeight);
-        WorkUtils.workExecute(new Runnable() {
+    public static void with(final ImageView imageView, final String address, final int reqWidth, final int reqHeight) {
+        LogUtils.v(TAG, "bindBitmap address:" + address + " reqWidth:" + reqWidth + " reqHeight:" + reqHeight);
+        ThreadUtils.workExecute(new Runnable() {
             @Override
             public void run() {
-                Bitmap bitmap = mBitmapLruCache.get(path);
+                Bitmap bitmap = mBitmapLruCache.get(address);
                 if (bitmap == null) {
-                    File file = DiskCacheUtils.getFile(imageView.getContext(), path);
+                    File file = DiskUtils.getFile(address, DiskUtils.getImageCacheDir());
                     if (file == null) {
-                        file = InternetUtils.getFile(path);
+                        file = InternetUtils.getFile(address, DiskUtils.getImageCacheDir());
                     }
                     if (file != null) {
                         BitmapFactory.Options options = new BitmapFactory.Options();
@@ -69,13 +63,13 @@ public class BitmapCacheUtils {
                         bitmap = BitmapFactory.decodeFile(file.toString(), options);
                     }
                     if (bitmap != null) {
-                        LogUtils.v(TAG, "bindBitmap put:" + path);
-                        mBitmapLruCache.put(path, bitmap);
+                        LogUtils.v(TAG, "bindBitmap put:" + address);
+                        mBitmapLruCache.put(address, bitmap);
                     }
                 }
                 if (bitmap != null) {
                     final Bitmap fBitmap = bitmap;
-                    imageView.post(new Runnable() {
+                    ThreadUtils.uiExecute(new Runnable() {
                         @Override
                         public void run() {
                             imageView.setImageBitmap(fBitmap);
@@ -84,5 +78,15 @@ public class BitmapCacheUtils {
                 }
             }
         });
+    }
+
+    private static int calculateInSampleSize(int width, int height, int reqWidth, int reqHeight) {
+        int sampleSize = 1;
+        if (reqWidth != 0 && reqHeight != 0) {
+            while (width / sampleSize >= reqWidth && height / sampleSize >= reqHeight) {
+                sampleSize = sampleSize * 2;
+            }
+        }
+        return sampleSize;
     }
 }
