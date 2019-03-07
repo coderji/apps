@@ -27,7 +27,7 @@ public class MainActivity extends FragmentActivity {
         LogUtils.v(TAG, "attachBaseContext");
 
         DiskUtils.initCacheDir(newBase);
-        CrashUtils.initUncaughtExceptionHandler(newBase);
+        CrashUtils.initUncaughtExceptionHandler();
     }
 
     @Override

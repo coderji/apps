@@ -37,31 +37,25 @@ public class InternetUtils {
         return sb.toString();
     }
 
-    public static File getFile(String address, String dir) {
-        File file = new File(dir + File.separator + DiskUtils.addressToPath(address));
-        if (file.exists()) {
-            return file;
-        } else {
-            try {
-                URL url = new URL(address);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                int responseCode = connection.getResponseCode();
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    InputStream is = connection.getInputStream();
-                    FileOutputStream fos = new FileOutputStream(file);
-                    byte[] buffer = new byte[1024];
-                    int length;
-                    while ((length = is.read(buffer)) != -1) {
-                        fos.write(buffer, 0, length);
-                    }
-                    fos.flush();
-                    fos.close();
-                    is.close();
+    public static void saveFile(String address, File file) {
+        try {
+            URL url = new URL(address);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            int responseCode = connection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                InputStream is = connection.getInputStream();
+                FileOutputStream fos = new FileOutputStream(file);
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = is.read(buffer)) != -1) {
+                    fos.write(buffer, 0, length);
                 }
-            } catch (IOException e) {
-                LogUtils.e(TAG, "getFile address:" + address, e);
+                fos.flush();
+                fos.close();
+                is.close();
             }
-            return file;
+        } catch (IOException e) {
+            LogUtils.e(TAG, "saveFile address:" + address, e);
         }
     }
 }

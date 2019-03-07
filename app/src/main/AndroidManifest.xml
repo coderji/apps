@@ -13,7 +13,8 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/AppTheme">
 
-        <activity android:name="com.ji.tree.main.MainActivity">
+        <activity
+            android:name="com.ji.tree.main.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
@@ -25,11 +26,22 @@
         <service android:name=".app.AppDownloadService" />
 
         <provider
-            android:authorities="com.ji.tree.app.local"
-            android:name="com.ji.tree.app.local.AppProvider"
-            android:exported="false" />
+            android:authorities="com.ji.tree.FileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true"
+            android:name="androidx.core.content.FileProvider">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"/>
+        </provider>
 
-        <service android:name=".app.AppsJobService"
+        <provider
+            android:authorities="com.ji.tree.app.local"
+            android:exported="false"
+            android:name="com.ji.tree.app.local.AppProvider" />
+
+        <service
+            android:name=".app.AppsJobService"
             android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 </manifest>

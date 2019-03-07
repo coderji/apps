@@ -49,16 +49,4 @@ public class DiskUtils {
     public static String getAppCacheDir() {
         return sAppCacheDir;
     }
-
-    public static String addressToPath(String s) {
-        return s.replace(':', '[').replace('/', ']');
-    }
-
-    public static File getFile(String address, String dir) {
-        File cacheFile = new File(dir + File.separator + addressToPath(address));
-        if (cacheFile.exists()) {
-            return cacheFile;
-        }
-        return null;
-    }
 }

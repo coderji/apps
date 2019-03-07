@@ -51,15 +51,17 @@ public class AppFragment extends Fragment implements AppContract.View {
     public void onStart() {
         super.onStart();
 
-        mAppAdapter.start();
+        Intent intent = new Intent(getActivity(), AppDownloadService.class);
+        getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
     public void onStop() {
         super.onStop();
 
-        mAppAdapter.stop();
         mPresenter.unsubscribe();
+
+        getActivity().unbindService(mServiceConnection);
     }
 
     @Override
@@ -73,29 +75,30 @@ public class AppFragment extends Fragment implements AppContract.View {
         mAppAdapter.notifyDataSetChanged();
     }
 
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            LogUtils.v(TAG, "onServiceConnected");
+            mAppAdapter.setDownloadBinder((AppDownloadService.DownloadBinder) service);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            LogUtils.v(TAG, "onServiceDisconnected");
+        }
+    };
+
     private final static class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         private Context mContext;
         private List<AppData> mList;
-        private AppDownloadService.DownloadBinder mAppDownloadBinder;
-
-        public void start() {
-            LogUtils.v(TAG, "AppAdapter start");
-            if (mAppDownloadBinder == null) {
-                Intent intent = new Intent(mContext, AppDownloadService.class);
-                mContext.bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
-            }
-        }
-
-        public void stop() {
-            LogUtils.v(TAG, "AppAdapter stop");
-            if (mAppDownloadBinder != null && !mAppDownloadBinder.isDownloading()) {
-                mAppDownloadBinder = null;
-                mContext.unbindService(mServiceConnection);
-            }
-        }
+        private AppDownloadService.DownloadBinder mDownloadBinder;
 
         AppAdapter(Context context) {
             mContext = context;
+        }
+
+        public void setDownloadBinder(AppDownloadService.DownloadBinder binder) {
+            mDownloadBinder = binder;
         }
 
         public void setList(List<AppData> list) {
@@ -115,8 +118,8 @@ public class AppFragment extends Fragment implements AppContract.View {
             ImageUtils.with(holder.icon, data.iconUrl);
             holder.name.setText(data.name);
             holder.detail.setText(data.detail);
-            if (mAppDownloadBinder != null) {
-                mAppDownloadBinder.with(holder.btn, data);
+            if (mDownloadBinder != null) {
+                mDownloadBinder.with(holder.btn, data);
             }
         }
 
@@ -142,19 +145,5 @@ public class AppFragment extends Fragment implements AppContract.View {
                 btn = itemView.findViewById(R.id.app_iv_btn);
             }
         }
-
-        private ServiceConnection mServiceConnection = new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName name, IBinder service) {
-                LogUtils.v(TAG, "onServiceConnected");
-                mAppDownloadBinder = (AppDownloadService.DownloadBinder) service;
-            }
-
-            @Override
-            public void onServiceDisconnected(ComponentName name) {
-                LogUtils.v(TAG, "onServiceDisconnected");
-                mAppDownloadBinder = null;
-            }
-        };
     }
 }

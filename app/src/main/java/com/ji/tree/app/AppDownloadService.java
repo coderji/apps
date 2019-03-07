@@ -18,24 +18,23 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
+
+import androidx.collection.ArrayMap;
 
 public class AppDownloadService extends Service {
     private static final String TAG = "AppDownloadService";
     private static final int START_STATE = 1, NONE_STATE = 2;
-    private static final int START_MAX = 1;
+    private static final int START_MAX = 2;
     private ArrayList<AppData> mStartList = new ArrayList<>();
     private ArrayList<AppData> mWaitingList = new ArrayList<>();
-    private HashMap<String, Button> mButtonMap = new HashMap<>();
+    private ArrayMap<String, WeakReference<Button>> mButtonMap = new ArrayMap<>();
 
     public class DownloadBinder extends Binder {
         public void with(final Button button, final AppData data) {
-            if (mButtonMap.containsKey(data.packageName)) {
-                mButtonMap.put(data.packageName, button);
-            }
             button.setTag(data.packageName);
             button.setText(getStateString(data));
             button.setOnClickListener(new View.OnClickListener() {
@@ -50,8 +49,8 @@ public class AppDownloadService extends Service {
                                 AppData waiting = mWaitingList.remove(0);
                                 waiting.state = START_STATE;
                                 mStartList.add(waiting);
-
-                                downloadApp(button, waiting);
+                                mButtonMap.put(data.packageName, new WeakReference<>(button));
+                                downloadApp(waiting);
                             }
 
                             return;
@@ -63,6 +62,7 @@ public class AppDownloadService extends Service {
                             waiting.state = NONE_STATE;
                             mWaitingList.remove(waiting);
                             button.setText(R.string.download);
+
                             return;
                         }
                     }
@@ -70,14 +70,22 @@ public class AppDownloadService extends Service {
                     if (mStartList.size() < START_MAX) {
                         data.state = START_STATE;
                         mStartList.add(data);
-
-                        downloadApp(button, data);
+                        mButtonMap.put(data.packageName, new WeakReference<>(button));
+                        downloadApp(data);
                     } else {
                         mWaitingList.add(data);
+                        mButtonMap.put(data.packageName, new WeakReference<>(button));
                         button.setText(R.string.waiting);
                     }
                 }
             });
+
+            for (AppData start : mStartList) {
+                if (start.equals(data)) {
+                    mButtonMap.put(data.packageName, new WeakReference<>(button));
+                    break;
+                }
+            }
         }
 
         private String getStateString(final AppData data) {
@@ -86,52 +94,61 @@ public class AppDownloadService extends Service {
                     return getString(R.string.waiting);
                 }
             }
+            try {
+                String apkPath = DiskUtils.getAppCacheDir() + File.separator + data.packageName + "_" + data.versionCode + ".apk";
+                RandomAccessFile raf = new RandomAccessFile(apkPath, "rwd");
+                long size = raf.length();
+                if (size > 0) {
+                    return CommonUtils.byte2FitMemorySize(size);
+                }
+            } catch (IOException e) {
+                LogUtils.e(TAG, "getStateString data.packageName:" + data.packageName, e);
+            }
             return getString(R.string.download);
         }
 
-        private void downloadApp(final Button button, final AppData data) {
+        private void downloadApp(final AppData data) {
             ThreadUtils.workExecute(new Runnable() {
                 @Override
                 public void run() {
-                    LogUtils.v(TAG, "downloadApp begin button:" + Integer.toHexString(System.identityHashCode(button)) + " data:" + data.packageName);
-                    mButtonMap.put(data.packageName, button);
-
+                    LogUtils.v(TAG, "downloadApp begin " + data.packageName);
+                    Intent intent = new Intent(getApplicationContext(), AppDownloadService.class);
+                    if (mStartList.size() == 1) {
+                        startService(intent);
+                    }
                     try {
-                        RandomAccessFile raf = new RandomAccessFile(
-                                DiskUtils.getAppCacheDir() + File.separator + DiskUtils.addressToPath(data.apkUrl),
-                                "rwd");
+                        String apkPath = DiskUtils.getAppCacheDir() + File.separator + data.packageName + "_" + data.versionCode + ".apk";
+                        RandomAccessFile raf = new RandomAccessFile(apkPath, "rwd");
                         LogUtils.v(TAG, "raf.length:" + raf.length());
                         data.downloadSize = raf.length();
                         URL url = new URL(data.apkUrl);
                         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                        connection.setRequestProperty("Range", "bytes=" + data.downloadSize + "-");
                         int responseCode = connection.getResponseCode();
-                        if (responseCode == HttpURLConnection.HTTP_OK) {
+                        LogUtils.v(TAG, "responseCode:" + responseCode);
+                        if (responseCode == HttpURLConnection.HTTP_PARTIAL) {
                             int contentLength = connection.getHeaderFieldInt("Content-Length", 0);
                             LogUtils.v(TAG, "downloadApp contentLength:" + contentLength);
+                            data.fileSize = contentLength;
                             InputStream is = connection.getInputStream();
                             byte[] buffer = new byte[1024];
                             int length;
                             raf.seek(data.downloadSize);
                             while (data.state == START_STATE && (length = is.read(buffer)) != -1) {
-try {Thread.sleep(3000); } catch (Exception e) {}
                                 raf.write(buffer, 0, length);
                                 data.downloadSize += length;
 
-                                final Button b = mButtonMap.get(data.packageName);
-                                LogUtils.v(TAG, "--" + data.packageName + " " + b);
-                                if (b != null) {
-                                    if (data.packageName.equals(b.getTag())) {
-                                        ThreadUtils.uiExecute(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                if (data.packageName.equals(b.getTag())) {
-                                                    b.setText(CommonUtils.byte2FitMemorySize(data.downloadSize));
-                                                }
+                                WeakReference<Button> button = mButtonMap.get(data.packageName);
+                                final Button b = button != null ? button.get() : null;
+                                if (b != null && data.packageName.equals(b.getTag())) {
+                                    ThreadUtils.uiExecute(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            if ((data.packageName.equals(b.getTag()))) {
+                                                b.setText(CommonUtils.byte2FitMemorySize(data.downloadSize));
                                             }
-                                        });
-                                    } else {
-                                        mButtonMap.remove(data.packageName);
-                                    }
+                                        }
+                                    });
                                 }
                             }
                             raf.close();
@@ -146,19 +163,26 @@ try {Thread.sleep(3000); } catch (Exception e) {}
                                         waiting.state = START_STATE;
                                         mStartList.add(waiting);
 
-                                        downloadApp(button, waiting);
+                                        downloadApp(waiting);
                                     }
 
                                     return;
                                 }
                             }
+
+                            if (data.state == START_STATE) {
+                                CommonUtils.installApp(getApplicationContext(), new File(apkPath));
+                            }
                         }
                     } catch (IOException e) {
                         LogUtils.e(TAG, "downloadApp apkUrl:" + data.apkUrl, e);
                     }
-
                     mButtonMap.remove(data.packageName);
-                    LogUtils.v(TAG, "downloadApp end button:" + Integer.toHexString(System.identityHashCode(button)) + " data:" + data.packageName);
+                    if (mStartList.isEmpty()) {
+                        stopSelf();
+                    }
+                    LogUtils.v(TAG, "downloadApp end " + data.packageName);
+
                 }
             });
         }
@@ -196,5 +220,11 @@ try {Thread.sleep(3000); } catch (Exception e) {}
     public boolean onUnbind(Intent intent) {
         LogUtils.v(TAG, "onUnbind " + this);
         return super.onUnbind(intent);
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        LogUtils.v(TAG, "onStartCommand " + startId);
+        return super.onStartCommand(intent, flags, startId);
     }
 }

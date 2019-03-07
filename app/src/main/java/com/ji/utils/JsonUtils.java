@@ -1,7 +1,5 @@
 package com.ji.utils;
 
-import android.annotation.TargetApi;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -20,12 +18,11 @@ public class JsonUtils {
         String value();
     }
 
-    @TargetApi(28)
     public static Object parse(String s, Class<?> cls) {
         LogUtils.v(TAG, "parse cls:" + cls.getName());
         try {
             Object object = cls.newInstance();
-            if (LogUtils.isPhone()) {
+            if (LogUtils.sPhone) {
                 JSONObject jsonObject = new JSONObject(s);
                 Field fields[] = cls.getDeclaredFields();
                 for (Field field : fields) {
@@ -40,7 +37,7 @@ public class JsonUtils {
                                     .getDeclaredMethod("getActualTypeArguments")
                                     .invoke(genericType);
 
-                            Class c = Class.forName(actualTypes[0].getTypeName());
+                            Class c = Class.forName(actualTypes[0].toString().split(" ")[1]); // actualTypes[0].getTypeName
                             JSONArray jsonArray = jsonObject.getJSONArray(value);
                             List<Object> list = new ArrayList<>();
                             for (int i = 0; i < jsonArray.length(); i++) {
@@ -75,7 +72,7 @@ public class JsonUtils {
                                     .getDeclaredMethod("getActualTypeArguments")
                                     .invoke(genericType);
 
-                            Class c = Class.forName(actualTypes[0].getTypeName());
+                            Class c = Class.forName(actualTypes[0].toString().split(" ")[1]); // actualTypes[0].getTypeName
                             com.ji.org.json.JSONArray jsonArray = jsonObject.getJSONArray(value);
                             List<Object> list = new ArrayList<>();
                             for (int i = 0; i < jsonArray.length(); i++) {

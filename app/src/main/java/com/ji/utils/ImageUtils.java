@@ -44,40 +44,38 @@ public class ImageUtils {
     }
 
     public static void with(final ImageView imageView, final String address, final int reqWidth, final int reqHeight) {
-        LogUtils.v(TAG, "bindBitmap address:" + address + " reqWidth:" + reqWidth + " reqHeight:" + reqHeight);
-        ThreadUtils.workExecute(new Runnable() {
-            @Override
-            public void run() {
-                Bitmap bitmap = mBitmapLruCache.get(address);
-                if (bitmap == null) {
-                    File file = DiskUtils.getFile(address, DiskUtils.getImageCacheDir());
-                    if (file == null) {
-                        file = InternetUtils.getFile(address, DiskUtils.getImageCacheDir());
+        LogUtils.v(TAG, "with address:" + address + " reqWidth:" + reqWidth + " reqHeight:" + reqHeight);
+        Bitmap bitmap = mBitmapLruCache.get(address);
+        if (bitmap != null) {
+            imageView.setImageBitmap(bitmap);
+        } else {
+            ThreadUtils.workExecute(new Runnable() {
+                @Override
+                public void run() {
+                    String images[] = address.split("/");
+                    String imagePath = DiskUtils.getImageCacheDir() + File.separator + images[images.length - 1];
+                    File file = new File(imagePath);
+                    if (!file.exists()) {
+                        InternetUtils.saveFile(address, file);
                     }
-                    if (file != null) {
-                        BitmapFactory.Options options = new BitmapFactory.Options();
-                        options.inJustDecodeBounds = true;
-                        BitmapFactory.decodeFile(file.getPath(), options);
-                        options.inJustDecodeBounds = false;
-                        options.inSampleSize = calculateInSampleSize(options.outWidth, options.outHeight, reqWidth, reqHeight);
-                        bitmap = BitmapFactory.decodeFile(file.toString(), options);
-                    }
-                    if (bitmap != null) {
-                        LogUtils.v(TAG, "bindBitmap put:" + address);
-                        mBitmapLruCache.put(address, bitmap);
-                    }
-                }
-                if (bitmap != null) {
-                    final Bitmap fBitmap = bitmap;
+
+                    BitmapFactory.Options options = new BitmapFactory.Options();
+                    options.inJustDecodeBounds = true;
+                    BitmapFactory.decodeFile(file.getPath(), options);
+                    options.inJustDecodeBounds = false;
+                    options.inSampleSize = calculateInSampleSize(options.outWidth, options.outHeight, reqWidth, reqHeight);
+                    final Bitmap bitmap = BitmapFactory.decodeFile(file.toString(), options);
+                    mBitmapLruCache.put(address, bitmap);
+
                     ThreadUtils.uiExecute(new Runnable() {
                         @Override
                         public void run() {
-                            imageView.setImageBitmap(fBitmap);
+                            imageView.setImageBitmap(bitmap);
                         }
                     });
                 }
-            }
-        });
+            });
+        }
     }
 
     private static int calculateInSampleSize(int width, int height, int reqWidth, int reqHeight) {
