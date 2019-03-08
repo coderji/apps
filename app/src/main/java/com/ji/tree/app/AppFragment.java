@@ -52,7 +52,9 @@ public class AppFragment extends Fragment implements AppContract.View {
         super.onStart();
 
         Intent intent = new Intent(getActivity(), AppDownloadService.class);
-        getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        if (getActivity() != null) {
+            getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        }
     }
 
     @Override
@@ -60,8 +62,9 @@ public class AppFragment extends Fragment implements AppContract.View {
         super.onStop();
 
         mPresenter.unsubscribe();
-
-        getActivity().unbindService(mServiceConnection);
+        if (getActivity() != null) {
+            getActivity().unbindService(mServiceConnection);
+        }
     }
 
     @Override

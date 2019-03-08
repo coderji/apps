@@ -97,9 +97,10 @@ public class AppDownloadService extends Service {
             try {
                 String apkPath = DiskUtils.getAppCacheDir() + File.separator + data.packageName + "_" + data.versionCode + ".apk";
                 RandomAccessFile raf = new RandomAccessFile(apkPath, "rwd");
-                long size = raf.length();
-                if (size > 0) {
-                    return CommonUtils.byte2FitMemorySize(size);
+                data.downloadSize = raf.length();
+                raf.close();
+                if (data.downloadSize > 0) {
+                    return CommonUtils.byte2FitMemorySize(data.downloadSize);
                 }
             } catch (IOException e) {
                 LogUtils.e(TAG, "getStateString data.packageName:" + data.packageName, e);
@@ -119,8 +120,6 @@ public class AppDownloadService extends Service {
                     try {
                         String apkPath = DiskUtils.getAppCacheDir() + File.separator + data.packageName + "_" + data.versionCode + ".apk";
                         RandomAccessFile raf = new RandomAccessFile(apkPath, "rwd");
-                        LogUtils.v(TAG, "raf.length:" + raf.length());
-                        data.downloadSize = raf.length();
                         URL url = new URL(data.apkUrl);
                         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                         connection.setRequestProperty("Range", "bytes=" + data.downloadSize + "-");
@@ -154,6 +153,7 @@ public class AppDownloadService extends Service {
                             raf.close();
                             is.close();
 
+                            LogUtils.v(TAG, "downloadApp break while " + data.packageName);
                             for (AppData start : mStartList) {
                                 if (start.equals(data)) {
                                     mStartList.remove(start);
@@ -166,14 +166,14 @@ public class AppDownloadService extends Service {
                                         downloadApp(waiting);
                                     }
 
-                                    return;
+                                    break;
                                 }
                             }
-
                             if (data.state == START_STATE) {
                                 CommonUtils.installApp(getApplicationContext(), new File(apkPath));
                             }
                         }
+                        // 416
                     } catch (IOException e) {
                         LogUtils.e(TAG, "downloadApp apkUrl:" + data.apkUrl, e);
                     }
@@ -182,13 +182,8 @@ public class AppDownloadService extends Service {
                         stopSelf();
                     }
                     LogUtils.v(TAG, "downloadApp end " + data.packageName);
-
                 }
             });
-        }
-
-        public boolean isDownloading() {
-            return !mStartList.isEmpty();
         }
     }
 

@@ -32,7 +32,9 @@ public class CommonUtils {
 
     // AppUtils
     public static void installApp(final Context context, final File file) {
+        LogUtils.v(TAG, "installApp " + file);
         Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         Uri data;
         String type = "application/vnd.android.package-archive";
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
@@ -40,7 +42,7 @@ public class CommonUtils {
         } else {
             String authority = "com.ji.tree.FileProvider";
             data = FileProvider.getUriForFile(context, authority, file);
-            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         }
         context.grantUriPermission(context.getPackageName(), data, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         intent.setDataAndType(data, type);
