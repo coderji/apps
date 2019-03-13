@@ -1,15 +1,15 @@
-package com.ji.tree.app;
+package com.ji.tree.app.top;
 
 import com.ji.tree.app.tencent.TencentRepository;
 import com.ji.tree.app.local.AppData;
 
 import java.util.List;
 
-public class AppPresenter implements AppContract.Presenter {
-    private AppContract.View mView;
+public class TopAppPresenter implements TopAppContract.Presenter {
+    private TopAppContract.View mView;
     private TencentRepository mRepository;
 
-    public AppPresenter(AppContract.View view, TencentRepository repository) {
+    public TopAppPresenter(TopAppContract.View view, TencentRepository repository) {
         mView = view;
         mView.setPresenter(this);
         mRepository = repository;

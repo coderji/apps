@@ -1,4 +1,4 @@
-package com.ji.tree.app;
+package com.ji.tree.app.top;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.ji.tree.R;
+import com.ji.tree.app.AppDownloadService;
 import com.ji.tree.app.local.AppData;
 import com.ji.utils.ImageUtils;
 import com.ji.utils.LogUtils;
@@ -26,9 +27,9 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-public class AppFragment extends Fragment implements AppContract.View {
-    private static final String TAG = "AppFragment";
-    private AppContract.Presenter mPresenter;
+public class TopAppFragment extends Fragment implements TopAppContract.View {
+    private static final String TAG = "TopAppFragment";
+    private TopAppContract.Presenter mPresenter;
     private AppAdapter mAppAdapter;
 
     @Nullable
@@ -41,6 +42,23 @@ public class AppFragment extends Fragment implements AppContract.View {
         recyclerView.setLayoutManager(layoutManager);
         mAppAdapter = new AppAdapter(getActivity());
         recyclerView.setAdapter(mAppAdapter);
+
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                if (recyclerView.getLayoutManager() instanceof LinearLayoutManager) {
+                    LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                    int itemCount = layoutManager.getItemCount();
+                    int lastPosition = layoutManager.findLastCompletelyVisibleItemPosition();
+
+                    if (lastPosition == itemCount - 1) {
+                        mPresenter.getTop();
+                    }
+                }
+            }
+        });
 
         mPresenter.getTop();
 
@@ -68,7 +86,7 @@ public class AppFragment extends Fragment implements AppContract.View {
     }
 
     @Override
-    public void setPresenter(AppContract.Presenter presenter) {
+    public void setPresenter(TopAppContract.Presenter presenter) {
         mPresenter = presenter;
     }
 
@@ -95,6 +113,7 @@ public class AppFragment extends Fragment implements AppContract.View {
         private Context mContext;
         private List<AppData> mList;
         private AppDownloadService.DownloadBinder mDownloadBinder;
+        private final static int TYPE_NORMAL = 0, TYPE_WAITING = 1;
 
         AppAdapter(Context context) {
             mContext = context;
@@ -109,26 +128,39 @@ public class AppFragment extends Fragment implements AppContract.View {
         }
 
         @Override
+        public int getItemViewType(int position) {
+            if (position == getItemCount() - 1) {
+                return TYPE_WAITING;
+            }
+            return TYPE_NORMAL;
+        }
+
+        @Override
         public Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            return new Holder(LayoutInflater.from(mContext).inflate(R.layout.app_rv_item, parent, false));
+            if (viewType == TYPE_WAITING) {
+                return new Holder(LayoutInflater.from(mContext).inflate(R.layout.app_rv_item_waiting, parent, false));
+            }
+            return new Holder(LayoutInflater.from(mContext).inflate(R.layout.app_rv_item_normal, parent, false));
         }
 
         @Override
         public void onBindViewHolder(@NonNull Holder holder, int position) {
             LogUtils.v(TAG, "onBindViewHolder " + holder);
-            final AppData data = mList.get(position);
-            holder.number.setText(String.valueOf(position + 1));
-            ImageUtils.with(holder.icon, data.iconUrl);
-            holder.name.setText(data.name);
-            holder.detail.setText(data.detail);
-            if (mDownloadBinder != null) {
-                mDownloadBinder.with(holder.btn, data);
+            if (getItemViewType(position) != TYPE_WAITING) {
+                final AppData data = mList.get(position);
+                holder.number.setText(String.valueOf(position + 1));
+                ImageUtils.with(holder.icon, data.iconUrl);
+                holder.name.setText(data.name);
+                holder.detail.setText(data.detail);
+                if (mDownloadBinder != null) {
+                    mDownloadBinder.with(holder.btn, data);
+                }
             }
         }
 
         @Override
         public int getItemCount() {
-            return mList == null ? 0 : mList.size();
+            return mList == null ? 0 : mList.size() + 1;
         }
 
         class Holder extends RecyclerView.ViewHolder {

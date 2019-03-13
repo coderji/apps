@@ -5,8 +5,8 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.ji.tree.R;
-import com.ji.tree.app.AppFragment;
-import com.ji.tree.app.AppPresenter;
+import com.ji.tree.app.top.TopAppFragment;
+import com.ji.tree.app.top.TopAppPresenter;
 import com.ji.tree.app.tencent.TencentRepository;
 import com.ji.utils.CrashUtils;
 import com.ji.utils.DiskUtils;
@@ -51,8 +51,8 @@ public class MainActivity extends FragmentActivity {
         findViewById(R.id.main_btn_app).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mTopFragment instanceof AppFragment) {
-                    LogUtils.v(TAG, "mTopFragment is AppFragment");
+                if (mTopFragment instanceof TopAppFragment) {
+                    LogUtils.v(TAG, "mTopFragment is TopAppFragment");
                 } else {
                     setAppFragment();
                 }
@@ -64,12 +64,12 @@ public class MainActivity extends FragmentActivity {
 
     private void setAppFragment() {
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        final String tag = "AppFragment";
+        final String tag = "TopAppFragment";
         mAppFragment = getSupportFragmentManager().findFragmentByTag(tag);
         if (mAppFragment == null) {
-            LogUtils.d(TAG, "new AppFragment");
-            mAppFragment = new AppFragment();
-            new AppPresenter((AppFragment) mAppFragment, new TencentRepository());
+            LogUtils.d(TAG, "new TopAppFragment");
+            mAppFragment = new TopAppFragment();
+            new TopAppPresenter((TopAppFragment) mAppFragment, new TencentRepository());
             fragmentTransaction.add(R.id.main_content, mAppFragment, tag);
             fragmentTransaction.commit();
         } else if (mAppFragment != mTopFragment) {

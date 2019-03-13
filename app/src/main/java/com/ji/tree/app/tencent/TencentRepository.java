@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 
 import com.ji.tree.app.local.AppData;
 import com.ji.utils.InternetUtils;
@@ -17,18 +18,10 @@ import java.util.List;
 public class TencentRepository {
     private static String TAG = "TencentRepository";
 
-    public static List<AppData> getAppList(String kw, String pns, String sid) {
-        String s = InternetUtils.getString(
-                "https://sj.qq.com/myapp/searchAjax.htm?"
-                        + "&kw=" + kw
-                        + "&pns=" + pns
-                        + "&sid=" + sid);
-        SearchApps searchAppData = (SearchApps) JsonUtils.parse(s, SearchApps.class);
-        if (searchAppData != null) {
-            return searchAppData.getApps();
-        }
-        return null;
-    }
+    // Top
+    private List<AppData> mTopAppList = new ArrayList<>();
+    private int mPageNo = 0;
+    private final static int PAGE_SIZE = 10;
 
     public static List<AppData> getTopList(int pageNo, int pageSize) {
         String s = InternetUtils.getString(
@@ -38,6 +31,42 @@ public class TencentRepository {
         TopApps topAppData = (TopApps) JsonUtils.parse(s, TopApps.class);
         if (topAppData != null) {
             return topAppData.getApps();
+        }
+        LogUtils.e(TAG, "getTopList pageNo:" + pageNo + " pageSize:" + pageSize);
+        return null;
+    }
+
+    public interface TopCallback {
+        void onTop(List<AppData> list);
+    }
+
+    public void getTop(final TopCallback callback) {
+        ThreadUtils.workExecute(new Runnable() {
+            @Override
+            public void run() {
+                List<AppData> list = getTopList(mPageNo++, PAGE_SIZE);
+                if (list != null) {
+                    mTopAppList.addAll(list);
+                    ThreadUtils.uiExecute(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onTop(mTopAppList);
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    public static List<AppData> getAppList(String kw, String pns, String sid) {
+        String s = InternetUtils.getString(
+                "https://sj.qq.com/myapp/searchAjax.htm?"
+                        + "&kw=" + kw
+                        + "&pns=" + pns
+                        + "&sid=" + sid);
+        SearchApps searchAppData = (SearchApps) JsonUtils.parse(s, SearchApps.class);
+        if (searchAppData != null) {
+            return searchAppData.getApps();
         }
         return null;
     }
@@ -58,7 +87,11 @@ public class TencentRepository {
                         final AppData appData = new AppData();
                         appData.name = info.applicationInfo.loadLabel(pm).toString();
                         appData.packageName = info.packageName;
-                        appData.versionCode = info.getLongVersionCode();
+                        if (Build.VERSION.SDK_INT >= 28) {
+                            appData.versionCode = info.getLongVersionCode();
+                        } else {
+                            appData.versionCode = info.versionCode;
+                        }
 
                         List<AppData> list = getAppList(appData.name, null, null);
                         if (list != null && list.get(0).packageName.equals(appData.packageName)) {
@@ -72,25 +105,6 @@ public class TencentRepository {
                     @Override
                     public void run() {
                         callback.onUpdate(appList);
-                    }
-                });
-            }
-        });
-    }
-
-    public interface TopCallback {
-        void onTop(List<AppData> list);
-    }
-
-    public void getTop(final TopCallback callback) {
-        ThreadUtils.workExecute(new Runnable() {
-            @Override
-            public void run() {
-                final List<AppData> list = getTopList(0, 30);
-                ThreadUtils.uiExecute(new Runnable() {
-                    @Override
-                    public void run() {
-                        callback.onTop(list);
                     }
                 });
             }

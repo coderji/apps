@@ -5,6 +5,7 @@
     <string name="network_error">"Network error"</string>
     <!-- app -->
     <string name="app">"App"</string>
+    <string name="search">"Search"</string>
     <string name="download">"Download"</string>
     <string name="waiting">"Waiting"</string>
 </resources>
