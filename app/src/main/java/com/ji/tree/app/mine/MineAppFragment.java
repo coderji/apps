@@ -15,6 +15,7 @@ import com.ji.tree.app.AppDownloadService;
 import com.ji.tree.app.AppViewAdapter;
 import com.ji.tree.app.local.AppData;
 import com.ji.tree.app.tencent.TencentRepository;
+import com.ji.utils.InternetUtils;
 import com.ji.utils.LogUtils;
 
 import java.util.List;
@@ -128,4 +129,8 @@ public class MineAppFragment extends Fragment {
             LogUtils.v(TAG, "onServiceDisconnected");
         }
     };
+
+    public static void main(String[] args) {
+        LogUtils.v(TAG, InternetUtils.getString("https://github.com/coderji/Tree/blob/slave/README.md"));
+    }
 }

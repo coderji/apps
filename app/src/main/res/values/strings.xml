@@ -4,9 +4,11 @@
     <string name="loading">"Loading&#8230;"</string>
     <string name="no_more">"No more"</string>
     <string name="network_error">"Network error"</string>
+    <string name="download">"Download"</string>
     <string name="install">"Install"</string>
     <string name="waiting">"Waiting"</string>
     <string name="update">"Update"</string>
+    <string name="open">"Open"</string>
     <!-- app -->
     <string name="top">"Top"</string>
     <string name="search">"Search"</string>

@@ -3,6 +3,7 @@ package com.ji.tree.main;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 
 import com.ji.tree.R;
 import com.ji.tree.app.AppJobService;
@@ -16,6 +17,7 @@ import com.ji.utils.CrashUtils;
 import com.ji.utils.DiskUtils;
 import com.ji.utils.ImageUtils;
 import com.ji.utils.LogUtils;
+import com.ji.utils.ThreadUtils;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;

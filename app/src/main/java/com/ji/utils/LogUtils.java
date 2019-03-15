@@ -8,9 +8,10 @@ public class LogUtils {
 
     static {
         try {
-            Class.forName("android.util.Log");
+            android.util.Log.v(TAG, "sPhone:" + sPhone);
         } catch (Exception e) {
             sPhone = false;
+            System.out.println("V sPhone:" + sPhone);
         }
     }
 

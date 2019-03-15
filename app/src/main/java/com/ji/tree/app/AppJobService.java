@@ -30,6 +30,7 @@ public class AppJobService extends JobService {
     }
 
     public static void startJob(Context context) {
+        LogUtils.v(TAG, "startJob");
         JobInfo.Builder builder = new JobInfo.Builder(0, new ComponentName(context, AppJobService.class));
         builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
         builder.setRequiresCharging(false);

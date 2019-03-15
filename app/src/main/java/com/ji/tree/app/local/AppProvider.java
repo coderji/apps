@@ -88,7 +88,7 @@ public class AppProvider extends ContentProvider {
     }
 
     private static class AppSQLiteOpenHelper extends SQLiteOpenHelper {
-        private static String DATABASE_NAME = "app";
+        private static String DATABASE_NAME = "app.db";
         private static int DATABASE_VERSION = 1;
 
         AppSQLiteOpenHelper(Context context) {

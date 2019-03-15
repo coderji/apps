@@ -1,13 +1,23 @@
 package com.ji.tree.app;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
+import android.content.pm.LauncherApps;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
+import android.os.UserHandle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.ji.tree.R;
 import com.ji.tree.app.local.AppData;
@@ -33,9 +43,11 @@ public class AppDownloadService extends Service {
     private static final String TAG = "AppDownloadService";
     private static final int START_STATE = 1, NONE_STATE = 2;
     private static final int START_MAX = 2;
-    private ArrayList<AppData> mStartList = new ArrayList<>();
-    private ArrayList<AppData> mWaitingList = new ArrayList<>();
+    private ArrayMap<String, AppData> mStartMap = new ArrayMap<>();
+    private ArrayMap<String, AppData> mWaitingMap = new ArrayMap<>();
     private ArrayMap<String, WeakReference<Button>> mButtonMap = new ArrayMap<>();
+    private static final int NOTIFICATION_ID = 1;
+    private ArrayMap<String, AppData> mInstallMap = new ArrayMap<>();
 
     public class DownloadBinder extends Binder {
         public void with(final Button button, final AppData data) {
@@ -44,68 +56,62 @@ public class AppDownloadService extends Service {
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    for (AppData start : mStartList) {
-                        if (start.equals(data)) {
-                            start.state = NONE_STATE;
-                            mStartList.remove(start);
+                    if (mStartMap.containsKey(data.packageName)) {
+                        AppData start = mStartMap.get(data.packageName);
+                        start.state = NONE_STATE; // stop download
+                        mStartMap.remove(start);
 
-                            if (!mWaitingList.isEmpty()) {
-                                AppData waiting = mWaitingList.remove(0);
-                                waiting.state = START_STATE;
-                                mStartList.add(waiting);
-                                mButtonMap.put(data.packageName, new WeakReference<>(button));
-                                downloadApp(waiting);
-                            }
-
-                            return;
+                        if (!mWaitingMap.isEmpty()) {
+                            AppData waiting = mWaitingMap.removeAt(0);
+                            waiting.state = START_STATE;
+                            mStartMap.put(waiting.packageName, waiting);
+                            mButtonMap.put(data.packageName, new WeakReference<>(button));
+                            downloadApp(waiting);
                         }
-                    }
-
-                    for (AppData waiting : mWaitingList) {
-                        if (waiting.equals(data)) {
-                            waiting.state = NONE_STATE;
-                            mWaitingList.remove(waiting);
-                            button.setText(R.string.install);
-
-                            return;
-                        }
-                    }
-
-                    if (mStartList.size() < START_MAX) {
+                    } else if (mWaitingMap.containsKey(data.packageName)) {
+                        AppData waiting = mWaitingMap.get(data.packageName);
+                        mWaitingMap.remove(waiting);
+                        button.setText(R.string.install);
+                    } else if (mInstallMap.containsKey(data.packageName)
+                            && data.versionCode <= mInstallMap.get(data.packageName).versionCode) {
+                        Intent intent = getPackageManager().getLaunchIntentForPackage(data.packageName);
+                        startActivity(intent);
+                    } else if (mStartMap.size() < START_MAX) {
                         data.state = START_STATE;
-                        mStartList.add(data);
+                        mStartMap.put(data.packageName, data);
                         mButtonMap.put(data.packageName, new WeakReference<>(button));
                         downloadApp(data);
                     } else {
-                        mWaitingList.add(data);
+                        mWaitingMap.put(data.packageName, data);
                         mButtonMap.put(data.packageName, new WeakReference<>(button));
                         button.setText(R.string.waiting);
                     }
                 }
             });
 
-            for (AppData start : mStartList) {
-                if (start.equals(data)) {
-                    mButtonMap.put(data.packageName, new WeakReference<>(button));
-                    break;
-                }
+            if (mStartMap.containsKey(data.packageName)) {
+                mButtonMap.put(data.packageName, new WeakReference<>(button));
             }
         }
 
         private String getStateString(final AppData data) {
-            for (AppData wait : mWaitingList) {
-                if (wait.equals(data)) {
-                    return getString(R.string.waiting);
+            if (mWaitingMap.containsKey(data.packageName)) {
+                return getString(R.string.waiting);
+            } else if (mInstallMap.containsKey(data.packageName)) {
+                if (data.versionCode > mInstallMap.get(data.packageName).versionCode) {
+                    return getString(R.string.update);
+                } else {
+                    return getString(R.string.open);
                 }
+            } else {
+                String apkPath = DiskUtils.getAppCacheDir() + File.separator + data.packageName + "_" + data.versionCode + ".apk";
+                File file = new File(apkPath);
+                if (file.exists()) {
+                    data.downloadSize = file.length();
+                    return CommonUtils.byte2FitMemorySize(data.downloadSize);
+                }
+                return getString(R.string.install);
             }
-
-            String apkPath = DiskUtils.getAppCacheDir() + File.separator + data.packageName + "_" + data.versionCode + ".apk";
-            File file = new File(apkPath);
-            if (file.exists()) {
-                data.downloadSize = file.length();
-                return CommonUtils.byte2FitMemorySize(data.downloadSize);
-            }
-            return getString(R.string.install);
         }
 
         private void downloadApp(final AppData data) {
@@ -113,15 +119,8 @@ public class AppDownloadService extends Service {
                 @Override
                 public void run() {
                     LogUtils.v(TAG, "downloadApp begin " + data.packageName);
+                    onStartDownload(data);
 
-                    ContentValues contentValues = new ContentValues();
-                    contentValues.put(AppProvider.Columns.DATA_PACKAGE_NAME, data.packageName);
-                    getApplicationContext().getContentResolver().insert(AppProvider.TABLE_URI, contentValues);
-
-                    Intent intent = new Intent(getApplicationContext(), AppDownloadService.class);
-                    if (mStartList.size() == 1) {
-                        startService(intent);
-                    }
                     try {
                         String apkPath = DiskUtils.getAppCacheDir() + File.separator + data.packageName + "_" + data.versionCode + ".apk";
                         RandomAccessFile raf = new RandomAccessFile(apkPath, "rwd");
@@ -158,34 +157,31 @@ public class AppDownloadService extends Service {
                             raf.close();
                             is.close();
 
-                            LogUtils.v(TAG, "downloadApp break while " + data.packageName);
-                            for (AppData start : mStartList) {
-                                if (start.equals(data)) {
-                                    mStartList.remove(start);
+                            mStartMap.remove(data.packageName);
+                            if (!mWaitingMap.isEmpty()) {
+                                AppData waiting = mWaitingMap.removeAt(0);
+                                waiting.state = START_STATE;
+                                mStartMap.put(waiting.packageName, waiting);
 
-                                    if (!mWaitingList.isEmpty()) {
-                                        AppData waiting = mWaitingList.remove(0);
-                                        waiting.state = START_STATE;
-                                        mStartList.add(waiting);
-
-                                        downloadApp(waiting);
-                                    }
-
-                                    break;
-                                }
+                                downloadApp(waiting);
                             }
                             if (data.state == START_STATE) {
                                 CommonUtils.installApp(getApplicationContext(), new File(apkPath));
                             }
+                            mButtonMap.remove(data.packageName);
+                        } else if (responseCode == 416) { // 416
+                            ThreadUtils.uiExecute(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(getApplicationContext(), "responseCode 416", Toast.LENGTH_SHORT).show();
+                                }
+                            });
                         }
-                        // 416
                     } catch (IOException e) {
                         LogUtils.e(TAG, "downloadApp apkUrl:" + data.apkUrl, e);
                     }
-                    mButtonMap.remove(data.packageName);
-                    if (mStartList.isEmpty()) {
-                        stopSelf();
-                    }
+
+                    onStopDownload(data);
                     LogUtils.v(TAG, "downloadApp end " + data.packageName);
                 }
             });
@@ -193,8 +189,8 @@ public class AppDownloadService extends Service {
 
         public List<AppData> getAppList() {
             ArrayList<AppData> appList = new ArrayList<>();
-            appList.addAll(mStartList);
-            appList.addAll(mWaitingList);
+            appList.addAll(mStartMap.values());
+            appList.addAll(mWaitingMap.values());
             return appList;
         }
     }
@@ -203,12 +199,27 @@ public class AppDownloadService extends Service {
     public void onCreate() {
         super.onCreate();
         LogUtils.v(TAG, "onCreate " + this);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            initInstallApps();
+            LauncherApps launcherApps = (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
+            if (launcherApps != null) {
+                launcherApps.registerCallback(mAppsCallback);
+            }
+        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         LogUtils.v(TAG, "onDestroy " + this);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            LauncherApps launcherApps = (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
+            if (launcherApps != null) {
+                launcherApps.unregisterCallback(mAppsCallback);
+            }
+        }
     }
 
     @Override
@@ -234,4 +245,126 @@ public class AppDownloadService extends Service {
         LogUtils.v(TAG, "onStartCommand " + startId);
         return super.onStartCommand(intent, flags, startId);
     }
+
+    private void onStartDownload(AppData data) {
+        Intent intent = new Intent(getApplicationContext(), AppDownloadService.class);
+        if (mStartMap.size() == 1) {
+            startService(intent);
+        }
+
+        sendNotify(data.name);
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(AppProvider.Columns.DATA_PACKAGE_NAME, data.packageName);
+        Cursor cursor = getApplicationContext().getContentResolver().query(AppProvider.TABLE_URI,
+                new String[]{AppProvider.Columns.DATA_PACKAGE_NAME},
+                AppProvider.Columns.DATA_PACKAGE_NAME + " = ?",
+                new String[]{data.packageName},
+                null);
+        if (cursor != null) {
+            if (cursor.getCount() > 0) {
+                LogUtils.v(TAG, "not need insert");
+            } else {
+                getApplicationContext().getContentResolver().insert(AppProvider.TABLE_URI, contentValues);
+            }
+            cursor.close();
+        }
+    }
+
+    private void onStopDownload(AppData data) {
+        getApplicationContext().getContentResolver().delete(AppProvider.TABLE_URI,
+                AppProvider.Columns.DATA_PACKAGE_NAME + " = ?",
+                new String[]{data.packageName});
+
+        if (mStartMap.isEmpty()) {
+            cancelNotify();
+
+            stopSelf();
+        }
+    }
+
+    private void sendNotify(String name) {
+        LogUtils.v(TAG, "sendNotify");
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (notificationManager != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                Notification.Builder builder = new Notification.Builder(getApplicationContext());
+                builder.setContentText(getString(R.string.download) + " " + name);
+                builder.setSmallIcon(R.mipmap.ic_launcher);
+
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    NotificationChannel notificationChannel =
+                            new NotificationChannel(getPackageName(), getString(R.string.download), NotificationManager.IMPORTANCE_DEFAULT);
+                    notificationManager.createNotificationChannel(notificationChannel);
+                    builder.setChannelId(notificationChannel.getId());
+                }
+                notificationManager.notify(NOTIFICATION_ID, builder.build());
+            } else {
+                Notification notification = new Notification();
+                notification.tickerText = getString(R.string.download) + " " + name;
+                notificationManager.notify(NOTIFICATION_ID, notification);
+            }
+        }
+    }
+
+    private void cancelNotify() {
+        LogUtils.v(TAG, "cancelNotify");
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (notificationManager != null) {
+            notificationManager.cancel(NOTIFICATION_ID);
+        }
+    }
+
+    public void initInstallApps() {
+        LogUtils.v(TAG, "initInstallApps begin");
+        List<PackageInfo> infoList = getPackageManager().getInstalledPackages(0);
+        for (PackageInfo info : infoList) {
+            AppData appData = new AppData();
+            if (Build.VERSION.SDK_INT >= 28) {
+                appData.versionCode = info.getLongVersionCode();
+            } else {
+                appData.versionCode = info.versionCode;
+            }
+            mInstallMap.put(info.packageName, appData);
+        }
+        LogUtils.v(TAG, "initInstallApps end mInstallMap:" + mInstallMap);
+    }
+
+    LauncherApps.Callback mAppsCallback = new LauncherApps.Callback() {
+        @Override
+        public void onPackageRemoved(String packageName, UserHandle user) {
+            mInstallMap.remove(packageName);
+        }
+
+        @Override
+        public void onPackageAdded(String packageName, UserHandle user) {
+            try {
+                PackageInfo packageInfo = getPackageManager().getPackageInfo(packageName, 0);
+                AppData appData = new AppData();
+                if (Build.VERSION.SDK_INT >= 28) {
+                    appData.versionCode = packageInfo.getLongVersionCode();
+                } else {
+                    appData.versionCode = packageInfo.versionCode;
+                }
+                mInstallMap.put(packageName, appData);
+            } catch (PackageManager.NameNotFoundException e) {
+                LogUtils.e(TAG, "onPackageAdded packageName:" + packageName, e);
+            }
+        }
+
+        @Override
+        public void onPackageChanged(String packageName, UserHandle user) {
+
+        }
+
+        @Override
+        public void onPackagesAvailable(String[] packageNames, UserHandle user, boolean replacing) {
+
+        }
+
+        @Override
+        public void onPackagesUnavailable(String[] packageNames, UserHandle user, boolean replacing) {
+
+        }
+    };
 }

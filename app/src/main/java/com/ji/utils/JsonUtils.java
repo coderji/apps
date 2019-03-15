@@ -1,5 +1,10 @@
 package com.ji.utils;
 
+import android.os.Build;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Field;
@@ -26,7 +31,7 @@ public class JsonUtils {
     private static Object parseOnPhone(String string, Class<?> cls) {
         try {
             Object object = cls.newInstance();
-            org.json.JSONObject jsonObject = new org.json.JSONObject(string);
+            JSONObject jsonObject = new JSONObject(string);
             Field fields[] = cls.getDeclaredFields();
             for (Field field : fields) {
                 FieldName annotation = field.getAnnotation(FieldName.class);
@@ -41,12 +46,12 @@ public class JsonUtils {
                                 .invoke(genericType);
 
                         Class c;
-                        if (android.os.Build.VERSION.SDK_INT >= 28) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                             c = Class.forName(actualTypes[0].getTypeName());
                         } else {
                             c = Class.forName(actualTypes[0].toString().split(" ")[1]);
                         }
-                        org.json.JSONArray jsonArray = jsonObject.getJSONArray(value);
+                        JSONArray jsonArray = jsonObject.getJSONArray(value);
                         List<Object> list = new ArrayList<>();
                         for (int i = 0; i < jsonArray.length(); i++) {
                             list.add(parseOnPhone(jsonArray.getString(i), c));
@@ -64,7 +69,7 @@ public class JsonUtils {
                         field.set(object, jsonObject.getDouble(value));
                     } else {
                         Class c;
-                        if (android.os.Build.VERSION.SDK_INT >= 28) {
+                        if (Build.VERSION.SDK_INT >= 28) {
                             c = Class.forName(type.getTypeName());
                         } else {
                             c = Class.forName(type.toString().split(" ")[1]);
@@ -101,7 +106,7 @@ public class JsonUtils {
                                 .invoke(genericType);
 
                         Class c;
-                        if (android.os.Build.VERSION.SDK_INT >= 28) {
+                        if (Build.VERSION.SDK_INT >= 28) {
                             c = Class.forName(actualTypes[0].getTypeName());
                         } else {
                             c = Class.forName(actualTypes[0].toString().split(" ")[1]);
