@@ -5,6 +5,10 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.ji.tree.R;
+import com.ji.tree.app.AppJobService;
+import com.ji.tree.app.mine.MineAppFragment;
+import com.ji.tree.app.search.SearchAppFragment;
+import com.ji.tree.app.search.SearchAppPresenter;
 import com.ji.tree.app.top.TopAppFragment;
 import com.ji.tree.app.top.TopAppPresenter;
 import com.ji.tree.app.tencent.TencentRepository;
@@ -19,7 +23,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 public class MainActivity extends FragmentActivity {
     private static final String TAG = "MainActivity";
-    private Fragment mTopFragment, mAppFragment;
+    private Fragment mShowFragment;
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -28,6 +32,7 @@ public class MainActivity extends FragmentActivity {
 
         DiskUtils.initCacheDir(newBase);
         CrashUtils.initUncaughtExceptionHandler();
+        AppJobService.startJob(newBase);
     }
 
     @Override
@@ -51,31 +56,99 @@ public class MainActivity extends FragmentActivity {
         findViewById(R.id.main_btn_app).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mTopFragment instanceof TopAppFragment) {
-                    LogUtils.v(TAG, "mTopFragment is TopAppFragment");
+                if (mShowFragment instanceof TopAppFragment) {
+                    LogUtils.v(TAG, "mShowFragment is TopAppFragment");
                 } else {
-                    setAppFragment();
+                    showTopAppFragment();
+                }
+            }
+        });
+        findViewById(R.id.main_btn_search).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mShowFragment instanceof SearchAppFragment) {
+                    LogUtils.v(TAG, "mShowFragment is SearchAppFragment");
+                } else {
+                    showSearchAppFragment();
+                }
+            }
+        });
+        findViewById(R.id.main_btn_mine).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mShowFragment instanceof MineAppFragment) {
+                    LogUtils.v(TAG, "mShowFragment is MineAppFragment");
+                } else {
+                    showMineAppFragment();
                 }
             }
         });
 
-        setAppFragment();
+        showTopAppFragment();
     }
 
-    private void setAppFragment() {
+    private void showTopAppFragment() {
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         final String tag = "TopAppFragment";
-        mAppFragment = getSupportFragmentManager().findFragmentByTag(tag);
-        if (mAppFragment == null) {
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(tag);
+        if (fragment == null) {
             LogUtils.d(TAG, "new TopAppFragment");
-            mAppFragment = new TopAppFragment();
-            new TopAppPresenter((TopAppFragment) mAppFragment, new TencentRepository());
-            fragmentTransaction.add(R.id.main_content, mAppFragment, tag);
+            fragment = new TopAppFragment();
+            new TopAppPresenter((TopAppFragment) fragment, TencentRepository.getInstance());
+            fragmentTransaction.add(R.id.main_content, fragment, tag);
+            if (mShowFragment != null) {
+                fragmentTransaction.hide(mShowFragment);
+            }
             fragmentTransaction.commit();
-        } else if (mAppFragment != mTopFragment) {
-            fragmentTransaction.show(mAppFragment);
+            mShowFragment = fragment;
+        } else if (fragment != mShowFragment) {
+            fragmentTransaction.show(fragment);
+            fragmentTransaction.hide(mShowFragment);
             fragmentTransaction.commit();
-            mTopFragment = mAppFragment;
+            mShowFragment = fragment;
+        }
+    }
+
+    private void showSearchAppFragment() {
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        final String tag = "SearchAppFragment";
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(tag);
+        if (fragment == null) {
+            LogUtils.d(TAG, "new SearchAppFragment");
+            fragment = new SearchAppFragment();
+            new SearchAppPresenter((SearchAppFragment) fragment, TencentRepository.getInstance());
+            fragmentTransaction.add(R.id.main_content, fragment, tag);
+            if (mShowFragment != null) {
+                fragmentTransaction.hide(mShowFragment);
+            }
+            fragmentTransaction.commit();
+            mShowFragment = fragment;
+        } else if (fragment != mShowFragment) {
+            fragmentTransaction.show(fragment);
+            fragmentTransaction.hide(mShowFragment);
+            fragmentTransaction.commit();
+            mShowFragment = fragment;
+        }
+    }
+
+    private void showMineAppFragment() {
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        final String tag = "MineAppFragment";
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(tag);
+        if (fragment == null) {
+            LogUtils.d(TAG, "new SearchAppFragment");
+            fragment = new MineAppFragment();
+            fragmentTransaction.add(R.id.main_content, fragment, tag);
+            if (mShowFragment != null) {
+                fragmentTransaction.hide(mShowFragment);
+            }
+            fragmentTransaction.commit();
+            mShowFragment = fragment;
+        } else if (fragment != mShowFragment) {
+            fragmentTransaction.show(fragment);
+            fragmentTransaction.hide(mShowFragment);
+            fragmentTransaction.commit();
+            mShowFragment = fragment;
         }
     }
 }

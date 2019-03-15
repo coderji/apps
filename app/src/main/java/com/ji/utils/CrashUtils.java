@@ -37,8 +37,8 @@ public class CrashUtils  {
         File file = new File(DiskUtils.getCrashCacheDir() + File.separator + time);
         try {
             PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(file)));
-            pw.println("VERSION:" + BuildConfig.VERSION_NAME
-                    + " Android:" + Build.VERSION.RELEASE
+            pw.println("VERSION_NAME:" + BuildConfig.VERSION_NAME
+                    + " RELEASE:" + Build.VERSION.RELEASE
                     + " SDK_INT:" + Build.VERSION.SDK_INT
                     + " MANUFACTURER:" + Build.MANUFACTURER
                     + " MODEL:" + Build.MODEL);

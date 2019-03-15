@@ -9,6 +9,8 @@ import java.util.List;
 public class TopApps {
     @JsonUtils.FieldName("app")
     private List<App> appList;
+    @JsonUtils.FieldName("next")
+    private boolean next;
 
     public static class App {
         @JsonUtils.FieldName("iconurl")
@@ -26,6 +28,12 @@ public class TopApps {
         private String size;
     }
 
+    @Override
+    public String toString() {
+        return "TopApps next:" + next
+                + " appList.size:" + appList.size();
+    }
+
     public List<AppData> getApps() {
         List<AppData> list = new ArrayList<>();
         for (App app : appList) {
@@ -39,5 +47,9 @@ public class TopApps {
             list.add(appData);
         }
         return list;
+    }
+
+    public boolean getNext() {
+        return next;
     }
 }

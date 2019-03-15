@@ -3,6 +3,7 @@
     <style name="AppTheme" parent="@android:style/Theme.DeviceDefault.Light.DarkActionBar">
         <item name="android:colorPrimary">#3F51B5</item>
         <item name="android:colorPrimaryDark">#303F9F</item>
+        <item name="android:colorAccent">#3F51B5</item>
         <item name="android:buttonStyle">@style/btn</item>
     </style>
 

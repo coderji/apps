@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.os.Build;
 
 import com.ji.tree.app.local.AppData;
 import com.ji.utils.InternetUtils;
@@ -18,39 +17,48 @@ import java.util.List;
 public class TencentRepository {
     private static String TAG = "TencentRepository";
 
+    private TencentRepository() {
+    }
+
+    private static class SingletonInstance {
+        private static final TencentRepository INSTANCE = new TencentRepository();
+    }
+
+    public static TencentRepository getInstance() {
+        return SingletonInstance.INSTANCE;
+    }
+
     // Top
     private List<AppData> mTopAppList = new ArrayList<>();
-    private int mPageNo = 0;
+    private int mPageNo = 1;
     private final static int PAGE_SIZE = 10;
 
-    public static List<AppData> getTopList(int pageNo, int pageSize) {
+    private TopApps getTopApps() {
+        LogUtils.v(TAG, "getTopApps > pageNo:" + mPageNo + " pageSize:" + PAGE_SIZE);
         String s = InternetUtils.getString(
                 "https://mapp.qzone.qq.com/cgi-bin/mapp/mapp_applist?apptype=soft_top&platform=touch"
-                        + "&pageNo=" + pageNo
-                        + "&pageSize=" + pageSize);
-        TopApps topAppData = (TopApps) JsonUtils.parse(s, TopApps.class);
-        if (topAppData != null) {
-            return topAppData.getApps();
-        }
-        LogUtils.e(TAG, "getTopList pageNo:" + pageNo + " pageSize:" + pageSize);
-        return null;
+                        + "&pageNo=" + mPageNo++
+                        + "&pageSize=" + PAGE_SIZE);
+        LogUtils.v(TAG, "getTopApps < " + s);
+        return (TopApps) JsonUtils.parse(s, TopApps.class);
     }
 
     public interface TopCallback {
-        void onTop(List<AppData> list);
+        void onTop(List<AppData> list, boolean more);
     }
 
     public void getTop(final TopCallback callback) {
         ThreadUtils.workExecute(new Runnable() {
             @Override
             public void run() {
-                List<AppData> list = getTopList(mPageNo++, PAGE_SIZE);
+                final TopApps topApps = getTopApps();
+                List<AppData> list = topApps.getApps();
                 if (list != null) {
                     mTopAppList.addAll(list);
                     ThreadUtils.uiExecute(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onTop(mTopAppList);
+                            callback.onTop(mTopAppList, topApps.getNext());
                         }
                     });
                 }
@@ -58,45 +66,88 @@ public class TencentRepository {
         });
     }
 
-    public static List<AppData> getAppList(String kw, String pns, String sid) {
+    // Search
+    private List<AppData> mSearchAppList = new ArrayList<>();
+    private String mKW, mPNS, mSID;
+
+    private SearchApps getSearchApps(String kw, int retry) {
+        if (mKW == null || !mKW.equals(kw)) {
+            mKW = kw;
+            mPNS = "";
+            mSID = "";
+            mSearchAppList.clear();
+        }
+        LogUtils.v(TAG, "getSearchApps > kw:" + mKW + " pns:" + mPNS + " sid:" + mSID + " retry:" + retry);
         String s = InternetUtils.getString(
                 "https://sj.qq.com/myapp/searchAjax.htm?"
-                        + "&kw=" + kw
-                        + "&pns=" + pns
-                        + "&sid=" + sid);
-        SearchApps searchAppData = (SearchApps) JsonUtils.parse(s, SearchApps.class);
-        if (searchAppData != null) {
-            return searchAppData.getApps();
+                        + "&kw=" + mKW
+                        + "&pns=" + mPNS
+                        + "&sid=" + mSID);
+        LogUtils.v(TAG, "getSearchApps < " + s);
+        SearchApps searchApps = (SearchApps) JsonUtils.parse(s, SearchApps.class);
+        if (searchApps != null) {
+            if (searchApps.getSuccess()) {
+                mPNS = searchApps.getPageNumberStack();
+            } else {
+                LogUtils.e(TAG, "getSearchApps retry:" + retry);
+                if (retry > 0) {
+                    return getSearchApps(kw, retry - 1);
+                }
+            }
         }
-        return null;
+        return searchApps;
     }
 
+    public interface SearchCallback {
+        void onSearch(List<AppData> list, boolean more);
+    }
+
+    public void getSearch(final String kw, final SearchCallback callback) {
+        ThreadUtils.workExecute(new Runnable() {
+            @Override
+            public void run() {
+                final SearchApps searchApps = getSearchApps(kw, 3);
+                List<AppData> list = searchApps.getApps();
+                if (list != null) {
+                    mSearchAppList.addAll(list);
+                    ThreadUtils.uiExecute(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onSearch(mSearchAppList, searchApps.getHasNext());
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    // Update
     public interface UpdateCallback {
         void onUpdate(List<AppData> list);
     }
 
-    public void getUpdate(final Context context, final UpdateCallback callback) {
+    public void getUpdateApps(final Context context, final UpdateCallback callback) {
         ThreadUtils.workExecute(new Runnable() {
             @Override
             public void run() {
                 PackageManager pm = context.getPackageManager();
                 List<PackageInfo> infoList = pm.getInstalledPackages(0);
-                final ArrayList<AppData> appList = new ArrayList<>(infoList.size());
+                final ArrayList<AppData> updateList = new ArrayList<>(infoList.size());
                 for (PackageInfo info : infoList) {
                     if ((info.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {
-                        final AppData appData = new AppData();
-                        appData.name = info.applicationInfo.loadLabel(pm).toString();
-                        appData.packageName = info.packageName;
-                        if (Build.VERSION.SDK_INT >= 28) {
-                            appData.versionCode = info.getLongVersionCode();
-                        } else {
-                            appData.versionCode = info.versionCode;
-                        }
-
-                        List<AppData> list = getAppList(appData.name, null, null);
-                        if (list != null && list.get(0).packageName.equals(appData.packageName)) {
-                            if (appData.versionCode < list.get(0).versionCode) {
-                                appList.add(list.get(0));
+                        //final AppData appData = new AppData();
+                        String name = info.applicationInfo.loadLabel(pm).toString();
+                        SearchApps searchApps = getSearchApps(name, 3);
+                        List<AppData> appList = searchApps.getApps();
+                        boolean find = false;
+                        int size = appList.size();
+                        for (int i = 0; !find && i < size; i++) {
+                            AppData appData = appList.get(i);
+                            if (appData.packageName.equals(info.packageName)) {
+                                find = true;
+                                if (appData.versionCode > info.versionCode) {
+                                    updateList.add(appData);
+                                }
                             }
                         }
                     }
@@ -104,14 +155,33 @@ public class TencentRepository {
                 ThreadUtils.uiExecute(new Runnable() {
                     @Override
                     public void run() {
-                        callback.onUpdate(appList);
+                        callback.onUpdate(updateList);
                     }
                 });
             }
         });
     }
 
+    // Main
     public static void main(String[] args) {
-        LogUtils.v(TAG, "getTopList " + getTopList(1 , 2));
+        TencentRepository tencentRepository = TencentRepository.getInstance();
+        /*
+        for (int i = 0; i < 20; i++) {
+            TopApps topApps = tencentRepository.getTopApps();
+            LogUtils.v(TAG, "TopApps " + i + " " + topApps);
+            if (!topApps.getNext()) {
+                break;
+            }
+        }
+        */
+        /*
+        for (int i = 0; i < 20; i++) {
+            SearchApps searchApps = tencentRepository.getSearchApps("微信");
+            LogUtils.v(TAG, "SearchApps " + i + " " + searchApps);
+            if (!searchApps.getHasNext()) {
+                break;
+            }
+        }
+        */
     }
 }

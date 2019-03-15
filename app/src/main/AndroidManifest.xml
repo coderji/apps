@@ -41,7 +41,7 @@
             android:name="com.ji.tree.app.local.AppProvider" />
 
         <service
-            android:name=".app.AppsJobService"
+            android:name=".app.AppJobService"
             android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 </manifest>

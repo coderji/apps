@@ -52,8 +52,8 @@ public class ImageUtils {
             ThreadUtils.workExecute(new Runnable() {
                 @Override
                 public void run() {
-                    String images[] = address.split("/");
-                    String imagePath = DiskUtils.getImageCacheDir() + File.separator + images[images.length - 1];
+                    String imagePath = DiskUtils.getImageCacheDir() + File.separator
+                            + address.replace(':', '_').replace('/', '_');
                     File file = new File(imagePath);
                     if (!file.exists()) {
                         InternetUtils.saveFile(address, file);

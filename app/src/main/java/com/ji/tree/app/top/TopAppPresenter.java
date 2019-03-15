@@ -16,11 +16,11 @@ public class TopAppPresenter implements TopAppContract.Presenter {
     }
 
     @Override
-    public void getTop() {
+    public void getMore() {
         mRepository.getTop(new TencentRepository.TopCallback() {
             @Override
-            public void onTop(List<AppData> list) {
-                mView.showTop(list);
+            public void onTop(List<AppData> list, boolean more) {
+                mView.showMore(list, more);
             }
         });
     }

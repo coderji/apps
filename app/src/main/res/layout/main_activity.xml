@@ -8,7 +8,14 @@
         android:id="@+id/main_content"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#dcdcdc" />
 
     <LinearLayout
         android:id="@+id/main_btn_bar"
@@ -21,7 +28,14 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="@string/app" />
+            android:text="@string/top" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp"
+            android:background="#dcdcdc" />
 
         <Button
             android:id="@+id/main_btn_search"
@@ -29,5 +43,19 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:text="@string/search" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp"
+            android:background="#dcdcdc" />
+
+        <Button
+            android:id="@+id/main_btn_mine"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/mine" />
     </LinearLayout>
 </LinearLayout>

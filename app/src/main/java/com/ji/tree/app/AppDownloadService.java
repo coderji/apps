@@ -1,7 +1,9 @@
 package com.ji.tree.app;
 
 import android.app.Service;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 import android.view.View;
@@ -9,6 +11,7 @@ import android.widget.Button;
 
 import com.ji.tree.R;
 import com.ji.tree.app.local.AppData;
+import com.ji.tree.app.local.AppProvider;
 import com.ji.utils.CommonUtils;
 import com.ji.utils.DiskUtils;
 import com.ji.utils.LogUtils;
@@ -22,6 +25,7 @@ import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 import androidx.collection.ArrayMap;
 
@@ -61,7 +65,7 @@ public class AppDownloadService extends Service {
                         if (waiting.equals(data)) {
                             waiting.state = NONE_STATE;
                             mWaitingList.remove(waiting);
-                            button.setText(R.string.download);
+                            button.setText(R.string.install);
 
                             return;
                         }
@@ -94,18 +98,14 @@ public class AppDownloadService extends Service {
                     return getString(R.string.waiting);
                 }
             }
-            try {
-                String apkPath = DiskUtils.getAppCacheDir() + File.separator + data.packageName + "_" + data.versionCode + ".apk";
-                RandomAccessFile raf = new RandomAccessFile(apkPath, "rwd");
-                data.downloadSize = raf.length();
-                raf.close();
-                if (data.downloadSize > 0) {
-                    return CommonUtils.byte2FitMemorySize(data.downloadSize);
-                }
-            } catch (IOException e) {
-                LogUtils.e(TAG, "getStateString data.packageName:" + data.packageName, e);
+
+            String apkPath = DiskUtils.getAppCacheDir() + File.separator + data.packageName + "_" + data.versionCode + ".apk";
+            File file = new File(apkPath);
+            if (file.exists()) {
+                data.downloadSize = file.length();
+                return CommonUtils.byte2FitMemorySize(data.downloadSize);
             }
-            return getString(R.string.download);
+            return getString(R.string.install);
         }
 
         private void downloadApp(final AppData data) {
@@ -113,6 +113,11 @@ public class AppDownloadService extends Service {
                 @Override
                 public void run() {
                     LogUtils.v(TAG, "downloadApp begin " + data.packageName);
+
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put(AppProvider.Columns.DATA_PACKAGE_NAME, data.packageName);
+                    getApplicationContext().getContentResolver().insert(AppProvider.TABLE_URI, contentValues);
+
                     Intent intent = new Intent(getApplicationContext(), AppDownloadService.class);
                     if (mStartList.size() == 1) {
                         startService(intent);
@@ -184,6 +189,13 @@ public class AppDownloadService extends Service {
                     LogUtils.v(TAG, "downloadApp end " + data.packageName);
                 }
             });
+        }
+
+        public List<AppData> getAppList() {
+            ArrayList<AppData> appList = new ArrayList<>();
+            appList.addAll(mStartList);
+            appList.addAll(mWaitingList);
+            return appList;
         }
     }
 

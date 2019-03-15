@@ -1,4 +1,4 @@
-package com.ji.tree.app.top;
+package com.ji.tree.app.search;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -6,9 +6,12 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 
 import com.ji.tree.R;
 import com.ji.tree.app.AppDownloadService;
@@ -25,17 +28,38 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-public class TopAppFragment extends Fragment implements TopAppContract.View {
-    private static final String TAG = "TopAppFragment";
-    private TopAppContract.Presenter mPresenter;
+public class SearchAppFragment extends Fragment implements SearchAppContract.View {
+    private static final String TAG = "SearchAppFragment";
+    private SearchAppContract.Presenter mPresenter;
     private AppViewAdapter mAppViewAdapter;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View parent = inflater.inflate(R.layout.top_app_fragment, container, false);
+        View parent = inflater.inflate(R.layout.search_app_fragment, container, false);
 
-        RecyclerView recyclerView = parent.findViewById(R.id.top_rv);
+        final EditText editText = parent.findViewById(R.id.search_et);
+        editText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String string = s.toString();
+                if (!string.isEmpty()) {
+                    mPresenter.getMore(string);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        RecyclerView recyclerView = parent.findViewById(R.id.search_rv);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL));
@@ -54,13 +78,11 @@ public class TopAppFragment extends Fragment implements TopAppContract.View {
                     int lastPosition = layoutManager.findLastCompletelyVisibleItemPosition();
 
                     if (lastPosition == itemCount - 1) {
-                        mPresenter.getMore();
+                        mPresenter.getMore(editText.getText().toString());
                     }
                 }
             }
         });
-
-        mPresenter.getMore();
 
         return parent;
     }
@@ -68,7 +90,6 @@ public class TopAppFragment extends Fragment implements TopAppContract.View {
     @Override
     public void onStart() {
         super.onStart();
-        LogUtils.v(TAG, "onStart");
 
         Intent intent = new Intent(getActivity(), AppDownloadService.class);
         if (getActivity() != null) {
@@ -79,7 +100,6 @@ public class TopAppFragment extends Fragment implements TopAppContract.View {
     @Override
     public void onStop() {
         super.onStop();
-        LogUtils.v(TAG, "onStop");
 
         mPresenter.unsubscribe();
         if (getActivity() != null) {
@@ -97,7 +117,7 @@ public class TopAppFragment extends Fragment implements TopAppContract.View {
     }
 
     @Override
-    public void setPresenter(TopAppContract.Presenter presenter) {
+    public void setPresenter(SearchAppContract.Presenter presenter) {
         mPresenter = presenter;
     }
 

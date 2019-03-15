@@ -9,13 +9,15 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.provider.BaseColumns;
 
 import androidx.annotation.NonNull;
 
 public class AppProvider extends ContentProvider {
-    public static final String AUTHORITY = "com.ji.tree.app.local";
-    public static String TABLE_DATA = "data";
-    public static class Columns {
+    private static final String AUTHORITY = "com.ji.tree.app.local";
+    private static final String TABLE_DATA = "data";
+    public static final Uri TABLE_URI = Uri.parse("content://" + AUTHORITY + "/" + TABLE_DATA);
+    public static class Columns implements BaseColumns {
         public static String DATA_ICON_URL = "iconUrl";
         public static String DATA_NAME = "name";
         public static String DATA_PACKAGE_NAME = "packageName";
@@ -96,11 +98,12 @@ public class AppProvider extends ContentProvider {
         @Override
         public void onCreate(SQLiteDatabase db) {
             db.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_DATA + "("
-                    + Columns.DATA_ICON_URL + " TEXT NOT NULL PRIMARY KEY, "
-                    + Columns.DATA_NAME + " TEXT NOT NULL, "
-                    + Columns.DATA_PACKAGE_NAME + " TEXT NOT NULL, "
+                    + Columns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    + Columns.DATA_ICON_URL + " TEXT, "
+                    + Columns.DATA_NAME + " TEXT, "
+                    + Columns.DATA_PACKAGE_NAME + " TEXT, "
                     + Columns.DATA_VERSION_CODE + " INTEGER, "
-                    + Columns.DATA_APK_URL + " TEXT NOT NULL, "
+                    + Columns.DATA_APK_URL + " TEXT, "
                     + Columns.DATA_FILE_SIZE + " INTEGER, "
                     + Columns.DATA_DOWNLOAD_SIZE + " INTEGER, "
                     + Columns.DATA_STATE + " INTEGER);");
