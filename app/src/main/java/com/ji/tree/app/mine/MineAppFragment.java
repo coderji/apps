@@ -15,9 +15,12 @@ import com.ji.tree.app.AppDownloadService;
 import com.ji.tree.app.AppViewAdapter;
 import com.ji.tree.app.local.AppData;
 import com.ji.tree.app.tencent.TencentRepository;
-import com.ji.utils.InternetUtils;
 import com.ji.utils.LogUtils;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
+import java.io.IOException;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -131,6 +134,13 @@ public class MineAppFragment extends Fragment {
     };
 
     public static void main(String[] args) {
-        LogUtils.v(TAG, InternetUtils.getString("https://github.com/coderji/Tree/blob/slave/README.md"));
+        try {
+            Document document = Jsoup.connect("https://github.com/coderji/Tree/blob/master/README.md").get();
+            LogUtils.v(TAG, "\n\n"
+                    + document.getElementsByClass("markdown-body entry-content").html());
+            LogUtils.v(TAG, document.getElementsByClass("markdown-body entry-content").text());
+        } catch (IOException e) {
+            LogUtils.e(TAG, "Document", e);
+        }
     }
 }
