@@ -20,7 +20,6 @@ import com.ji.utils.LogUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-import java.io.IOException;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -135,12 +134,14 @@ public class MineAppFragment extends Fragment {
 
     public static void main(String[] args) {
         try {
-            Document document = Jsoup.connect("https://github.com/coderji/Tree/blob/master/README.md").get();
-            LogUtils.v(TAG, "\n\n"
-                    + document.getElementsByClass("markdown-body entry-content").html());
-            LogUtils.v(TAG, document.getElementsByClass("markdown-body entry-content").text());
-        } catch (IOException e) {
-            LogUtils.e(TAG, "Document", e);
+            LogUtils.v(TAG, "> https://github.com/coderji/Tree/blob/master/app/release/output.json");
+            Document output = Jsoup.connect("https://github.com/coderji/Tree/blob/master/app/release/output.json").get();
+            LogUtils.v(TAG, "< https://github.com/coderji/Tree/blob/master/app/release/output.json");
+            String json = output.getElementById("LC1").text();
+            long versionCode = new com.ji.org.json.JSONArray(json).getJSONObject(0).getJSONObject("apkInfo").getLong("versionCode");
+            LogUtils.v(TAG, "versionCode:" + versionCode + " json:" + json);
+        } catch (Exception e) {
+            LogUtils.e(TAG, "output.json", e);
         }
     }
 }
