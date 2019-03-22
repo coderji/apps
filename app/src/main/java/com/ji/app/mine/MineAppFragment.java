@@ -1,4 +1,4 @@
-package com.ji.tree.app.mine;
+package com.ji.app.mine;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -10,11 +10,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.ji.tree.R;
-import com.ji.tree.app.AppDownloadService;
-import com.ji.tree.app.AppViewAdapter;
-import com.ji.tree.app.local.AppData;
-import com.ji.tree.app.tencent.TencentRepository;
+import com.ji.app.R;
+import com.ji.app.AppDownloadService;
+import com.ji.app.AppViewAdapter;
+import com.ji.app.local.AppData;
+import com.ji.app.tencent.TencentRepository;
 import com.ji.utils.LogUtils;
 
 import org.jsoup.Jsoup;

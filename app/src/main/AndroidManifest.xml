@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.ji.tree">
+    package="com.ji.app">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -14,7 +14,7 @@
         android:theme="@style/AppTheme">
 
         <activity
-            android:name="com.ji.tree.main.MainActivity">
+            android:name="com.ji.app.main.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
@@ -23,10 +23,10 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".app.AppDownloadService" />
+        <service android:name="com.ji.app.AppDownloadService" />
 
         <provider
-            android:authorities="com.ji.tree.FileProvider"
+            android:authorities="com.ji.app.FileProvider"
             android:exported="false"
             android:grantUriPermissions="true"
             android:name="androidx.core.content.FileProvider">
@@ -36,12 +36,12 @@
         </provider>
 
         <provider
-            android:authorities="com.ji.tree.app.local"
+            android:authorities="com.ji.app.local"
             android:exported="false"
-            android:name="com.ji.tree.app.local.AppProvider" />
+            android:name="com.ji.app.local.AppProvider" />
 
         <service
-            android:name=".app.AppJobService"
+            android:name="com.ji.app.AppJobService"
             android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 </manifest>

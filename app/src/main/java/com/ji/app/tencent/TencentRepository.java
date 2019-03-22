@@ -1,11 +1,11 @@
-package com.ji.tree.app.tencent;
+package com.ji.app.tencent;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
-import com.ji.tree.app.local.AppData;
+import com.ji.app.local.AppData;
 import com.ji.utils.InternetUtils;
 import com.ji.utils.JsonUtils;
 import com.ji.utils.LogUtils;
@@ -107,15 +107,17 @@ public class TencentRepository {
             @Override
             public void run() {
                 final SearchApps searchApps = getSearchApps(kw, 3);
-                List<AppData> list = searchApps.getApps();
-                if (list != null) {
-                    mSearchAppList.addAll(list);
-                    ThreadUtils.uiExecute(new Runnable() {
-                        @Override
-                        public void run() {
-                            callback.onSearch(mSearchAppList, searchApps.getHasNext());
-                        }
-                    });
+                if (searchApps != null) {
+                    List<AppData> list = searchApps.getApps();
+                    if (list != null) {
+                        mSearchAppList.addAll(list);
+                        ThreadUtils.uiExecute(new Runnable() {
+                            @Override
+                            public void run() {
+                                callback.onSearch(mSearchAppList, searchApps.getHasNext());
+                            }
+                        });
+                    }
                 }
             }
         });
@@ -138,15 +140,17 @@ public class TencentRepository {
                         //final AppData appData = new AppData();
                         String name = info.applicationInfo.loadLabel(pm).toString();
                         SearchApps searchApps = getSearchApps(name, 3);
-                        List<AppData> appList = searchApps.getApps();
-                        boolean find = false;
-                        int size = appList.size();
-                        for (int i = 0; !find && i < size; i++) {
-                            AppData appData = appList.get(i);
-                            if (appData.packageName.equals(info.packageName)) {
-                                find = true;
-                                if (appData.versionCode > info.versionCode) {
-                                    updateList.add(appData);
+                        if (searchApps != null) {
+                            List<AppData> appList = searchApps.getApps();
+                            boolean find = false;
+                            int size = appList.size();
+                            for (int i = 0; !find && i < size; i++) {
+                                AppData appData = appList.get(i);
+                                if (appData.packageName.equals(info.packageName)) {
+                                    find = true;
+                                    if (appData.versionCode > info.versionCode) {
+                                        updateList.add(appData);
+                                    }
                                 }
                             }
                         }

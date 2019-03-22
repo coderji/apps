@@ -1,4 +1,4 @@
-package com.ji.tree.app.search;
+package com.ji.app.top;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -6,17 +6,14 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 
-import com.ji.tree.R;
-import com.ji.tree.app.AppDownloadService;
-import com.ji.tree.app.AppViewAdapter;
-import com.ji.tree.app.local.AppData;
+import com.ji.app.R;
+import com.ji.app.AppDownloadService;
+import com.ji.app.AppViewAdapter;
+import com.ji.app.local.AppData;
 import com.ji.utils.LogUtils;
 
 import java.util.List;
@@ -28,38 +25,17 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-public class SearchAppFragment extends Fragment implements SearchAppContract.View {
-    private static final String TAG = "SearchAppFragment";
-    private SearchAppContract.Presenter mPresenter;
+public class TopAppFragment extends Fragment implements TopAppContract.View {
+    private static final String TAG = "TopAppFragment";
+    private TopAppContract.Presenter mPresenter;
     private AppViewAdapter mAppViewAdapter;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View parent = inflater.inflate(R.layout.search_app_fragment, container, false);
+        View parent = inflater.inflate(R.layout.top_app_fragment, container, false);
 
-        final EditText editText = parent.findViewById(R.id.search_et);
-        editText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                String string = s.toString();
-                if (!string.isEmpty()) {
-                    mPresenter.getMore(string);
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
-
-        RecyclerView recyclerView = parent.findViewById(R.id.search_rv);
+        RecyclerView recyclerView = parent.findViewById(R.id.top_rv);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL));
@@ -78,11 +54,13 @@ public class SearchAppFragment extends Fragment implements SearchAppContract.Vie
                     int lastPosition = layoutManager.findLastCompletelyVisibleItemPosition();
 
                     if (lastPosition == itemCount - 1) {
-                        mPresenter.getMore(editText.getText().toString());
+                        mPresenter.getMore();
                     }
                 }
             }
         });
+
+        mPresenter.getMore();
 
         return parent;
     }
@@ -90,6 +68,7 @@ public class SearchAppFragment extends Fragment implements SearchAppContract.Vie
     @Override
     public void onStart() {
         super.onStart();
+        LogUtils.v(TAG, "onStart");
 
         Intent intent = new Intent(getActivity(), AppDownloadService.class);
         if (getActivity() != null) {
@@ -100,6 +79,7 @@ public class SearchAppFragment extends Fragment implements SearchAppContract.Vie
     @Override
     public void onStop() {
         super.onStop();
+        LogUtils.v(TAG, "onStop");
 
         mPresenter.unsubscribe();
         if (getActivity() != null) {
@@ -117,7 +97,7 @@ public class SearchAppFragment extends Fragment implements SearchAppContract.Vie
     }
 
     @Override
-    public void setPresenter(SearchAppContract.Presenter presenter) {
+    public void setPresenter(TopAppContract.Presenter presenter) {
         mPresenter = presenter;
     }
 

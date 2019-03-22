@@ -1,4 +1,4 @@
-package com.ji.tree.app;
+package com.ji.app;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -19,9 +19,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.ji.tree.R;
-import com.ji.tree.app.local.AppData;
-import com.ji.tree.app.local.AppProvider;
+import com.ji.app.local.AppData;
+import com.ji.app.local.AppProvider;
 import com.ji.utils.CommonUtils;
 import com.ji.utils.DiskUtils;
 import com.ji.utils.LogUtils;

@@ -1,7 +1,7 @@
-package com.ji.tree.app.top;
+package com.ji.app.top;
 
-import com.ji.tree.app.tencent.TencentRepository;
-import com.ji.tree.app.local.AppData;
+import com.ji.app.tencent.TencentRepository;
+import com.ji.app.local.AppData;
 
 import java.util.List;
 

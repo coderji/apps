@@ -1,4 +1,4 @@
-package com.ji.tree.app;
+package com.ji.app;
 
 import android.annotation.TargetApi;
 import android.app.AlarmManager;

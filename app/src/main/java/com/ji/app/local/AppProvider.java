@@ -1,4 +1,4 @@
-package com.ji.tree.app.local;
+package com.ji.app.local;
 
 import android.content.ContentProvider;
 import android.content.ContentUris;
@@ -14,7 +14,7 @@ import android.provider.BaseColumns;
 import androidx.annotation.NonNull;
 
 public class AppProvider extends ContentProvider {
-    private static final String AUTHORITY = "com.ji.tree.app.local";
+    private static final String AUTHORITY = "com.ji.tree.local";
     private static final String TABLE_DATA = "data";
     public static final Uri TABLE_URI = Uri.parse("content://" + AUTHORITY + "/" + TABLE_DATA);
     public static class Columns implements BaseColumns {

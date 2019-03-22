@@ -1,6 +1,6 @@
-package com.ji.tree.app.tencent;
+package com.ji.app.tencent;
 
-import com.ji.tree.app.local.AppData;
+import com.ji.app.local.AppData;
 import com.ji.utils.CommonUtils;
 import com.ji.utils.JsonUtils;
 

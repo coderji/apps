@@ -3,7 +3,7 @@ package com.ji.utils;
 import android.os.Build;
 import android.os.Process;
 
-import com.ji.tree.BuildConfig;
+import com.ji.app.BuildConfig;
 
 import java.io.BufferedWriter;
 import java.io.File;

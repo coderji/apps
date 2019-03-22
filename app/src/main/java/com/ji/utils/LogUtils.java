@@ -1,13 +1,13 @@
 package com.ji.utils;
 
-import com.ji.tree.BuildConfig;
+import com.ji.app.BuildConfig;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
 public class LogUtils {
-    private static final String TAG = "Tree";
+    private static final String TAG = "App";
     private static boolean sPhone = true;
 
     static {

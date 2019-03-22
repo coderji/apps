@@ -1,4 +1,4 @@
-package com.ji.tree.mvp;
+package com.ji.app.mvp;
 
 public interface BaseView<T> {
     void setPresenter(T presenter);

@@ -1,4 +1,4 @@
-package com.ji.tree.app;
+package com.ji.app;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,8 +7,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.ji.tree.R;
-import com.ji.tree.app.local.AppData;
+import com.ji.app.local.AppData;
 import com.ji.utils.ImageUtils;
 import com.ji.utils.LogUtils;
 

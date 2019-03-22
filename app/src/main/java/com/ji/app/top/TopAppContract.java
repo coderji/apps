@@ -1,8 +1,8 @@
-package com.ji.tree.app.top;
+package com.ji.app.top;
 
-import com.ji.tree.mvp.BasePresenter;
-import com.ji.tree.mvp.BaseView;
-import com.ji.tree.app.local.AppData;
+import com.ji.app.mvp.BasePresenter;
+import com.ji.app.mvp.BaseView;
+import com.ji.app.local.AppData;
 
 import java.util.List;
 

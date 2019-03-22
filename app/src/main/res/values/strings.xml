@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">"Tree"</string>
+    <string name="app_name">"Apps"</string>
     <!-- common -->
     <string name="loading">"Loading&#8230;"</string>
     <string name="no_more">"No more"</string>

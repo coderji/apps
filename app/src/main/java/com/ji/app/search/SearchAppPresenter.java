@@ -1,7 +1,7 @@
-package com.ji.tree.app.search;
+package com.ji.app.search;
 
-import com.ji.tree.app.local.AppData;
-import com.ji.tree.app.tencent.TencentRepository;
+import com.ji.app.local.AppData;
+import com.ji.app.tencent.TencentRepository;
 
 import java.util.List;
 

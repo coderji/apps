@@ -1,4 +1,4 @@
-package com.ji.tree.app.local;
+package com.ji.app.local;
 
 public class AppData {
     public String iconUrl;
