@@ -12,7 +12,9 @@ import com.ji.utils.LogUtils;
 import com.ji.utils.ThreadUtils;
 
 import java.util.ArrayList;
+
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 public class TencentRepository {
     private static String TAG = "TencentRepository";
@@ -52,8 +54,8 @@ public class TencentRepository {
             @Override
             public void run() {
                 final TopApps topApps = getTopApps();
-                List<AppData> list = topApps.getApps();
-                if (list != null) {
+                if (topApps != null) {
+                    List<AppData> list = topApps.getApps();
                     mTopAppList.addAll(list);
                     ThreadUtils.uiExecute(new Runnable() {
                         @Override
@@ -134,31 +136,52 @@ public class TencentRepository {
             public void run() {
                 PackageManager pm = context.getPackageManager();
                 List<PackageInfo> infoList = pm.getInstalledPackages(0);
-                final ArrayList<AppData> updateList = new ArrayList<>(infoList.size());
-                for (PackageInfo info : infoList) {
+                List<PackageInfo> thirdList = new ArrayList<>();
+                for (final PackageInfo info : infoList) {
                     if ((info.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {
-                        //final AppData appData = new AppData();
-                        String name = info.applicationInfo.loadLabel(pm).toString();
-                        SearchApps searchApps = getSearchApps(name, 3);
-                        if (searchApps != null) {
-                            List<AppData> appList = searchApps.getApps();
-                            boolean find = false;
-                            int size = appList.size();
-                            for (int i = 0; !find && i < size; i++) {
-                                AppData appData = appList.get(i);
-                                if (appData.packageName.equals(info.packageName)) {
-                                    find = true;
-                                    if (appData.versionCode > info.versionCode) {
-                                        updateList.add(appData);
+                        thirdList.add(info);
+                    }
+                }
+
+                final ArrayList<AppData> updateList = new ArrayList<>();
+                final CountDownLatch countDownLatch = new CountDownLatch(thirdList.size());
+                for (final PackageInfo info : thirdList) {
+                    if ((info.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {
+                        final String name = info.applicationInfo.loadLabel(pm).toString();
+                        ThreadUtils.workExecute(new Runnable() {
+                            @Override
+                            public void run() {
+                                SearchApps searchApps = getSearchApps(name, 3);
+                                if (searchApps != null) {
+                                    List<AppData> appList = searchApps.getApps();
+                                    int size = appList.size();
+                                    for (int i = 0; i < size; i++) {
+                                        AppData appData = appList.get(i);
+                                        if (appData.packageName.equals(info.packageName)) {
+                                            if (appData.versionCode > info.versionCode) {
+                                                updateList.add(appData);
+                                            }
+                                            break;
+                                        }
                                     }
                                 }
+                                countDownLatch.countDown();
+                                LogUtils.v(TAG, "countDownLatch countDown getCount:" + countDownLatch.getCount());
                             }
-                        }
+                        });
                     }
+                }
+                try {
+                    LogUtils.v(TAG, "countDownLatch await begin");
+                    countDownLatch.await();
+                    LogUtils.v(TAG, "countDownLatch await end");
+                } catch (InterruptedException e) {
+                    LogUtils.e(TAG, "countDownLatch", e);
                 }
                 ThreadUtils.uiExecute(new Runnable() {
                     @Override
                     public void run() {
+                        LogUtils.d(TAG, "onUpdate");
                         callback.onUpdate(updateList);
                     }
                 });
