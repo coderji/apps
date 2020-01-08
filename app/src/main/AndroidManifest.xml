@@ -37,7 +37,6 @@
 
         <provider
             android:authorities="com.ji.app.local"
-            android:exported="false"
             android:name="com.ji.app.local.AppProvider" />
 
         <service

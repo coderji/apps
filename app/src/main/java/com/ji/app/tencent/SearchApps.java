@@ -1,7 +1,7 @@
 package com.ji.app.tencent;
 
 import com.ji.app.local.AppData;
-import com.ji.utils.CommonUtils;
+import com.ji.utils.Utils;
 import com.ji.utils.JsonUtils;
 
 import java.util.ArrayList;
@@ -50,7 +50,7 @@ public class SearchApps {
                 AppData appData = new AppData();
                 appData.iconUrl = app.iconurl;
                 appData.name = app.name;
-                appData.detail = CommonUtils.byte2FitMemorySize(app.fileSize);
+                appData.detail = Utils.byte2FitMemorySize(app.fileSize);
                 appData.packageName = app.packageName;
                 appData.apkUrl = app.apkUrl;
                 appData.versionCode = app.versionCode;

@@ -3,15 +3,14 @@ package com.ji.utils;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 
 import java.io.File;
 import java.util.Locale;
 
 import androidx.core.content.FileProvider;
 
-public class CommonUtils {
-    private static final String TAG = "CommonUtils";
+public class Utils {
+    private static final String TAG = "Utils";
 
     // https://github.com/Blankj/AndroidUtilCode/blob/master/utilcode/README-CN.md
     // ConvertUtils
@@ -37,13 +36,9 @@ public class CommonUtils {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         Uri data;
         String type = "application/vnd.android.package-archive";
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            data = Uri.fromFile(file);
-        } else {
-            String authority = "com.ji.tree.FileProvider";
-            data = FileProvider.getUriForFile(context, authority, file);
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        }
+        String authority = "com.ji.app.FileProvider";
+        data = FileProvider.getUriForFile(context, authority, file);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         context.grantUriPermission(context.getPackageName(), data, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         intent.setDataAndType(data, type);
         context.startActivity(intent);

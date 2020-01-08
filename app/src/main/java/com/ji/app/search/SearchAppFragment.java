@@ -35,7 +35,8 @@ public class SearchAppFragment extends Fragment implements SearchAppContract.Vie
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View parent = inflater.inflate(R.layout.search_app_fragment, container, false);
 
         final EditText editText = parent.findViewById(R.id.search_et);
@@ -72,7 +73,8 @@ public class SearchAppFragment extends Fragment implements SearchAppContract.Vie
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
 
-                if (mAppViewAdapter.getBottomType() == AppViewAdapter.TYPE_LOADING && recyclerView.getLayoutManager() instanceof LinearLayoutManager) {
+                if (mAppViewAdapter.getBottomType() == AppViewAdapter.TYPE_LOADING
+                        && recyclerView.getLayoutManager() instanceof LinearLayoutManager) {
                     LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
                     int itemCount = layoutManager.getItemCount();
                     int lastPosition = layoutManager.findLastCompletelyVisibleItemPosition();

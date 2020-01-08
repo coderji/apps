@@ -8,7 +8,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.ji.app.local.AppData;
-import com.ji.utils.ImageUtils;
+import com.ji.utils.BitmapUtils;
 import com.ji.utils.LogUtils;
 
 import java.util.List;
@@ -68,7 +68,7 @@ public class AppViewAdapter extends RecyclerView.Adapter<AppViewAdapter.Holder> 
         if (getItemViewType(position) == TYPE_NORMAL) {
             final AppData data = mList.get(position);
             holder.number.setText(String.valueOf(position + 1));
-            ImageUtils.with(holder.icon, data.iconUrl);
+            BitmapUtils.with(holder.icon, data.iconUrl);
             holder.name.setText(data.name);
             holder.detail.setText(data.detail);
             if (mDownloadBinder != null) {

@@ -14,7 +14,7 @@ import com.ji.app.top.TopAppPresenter;
 import com.ji.app.tencent.TencentRepository;
 import com.ji.utils.CrashUtils;
 import com.ji.utils.DiskUtils;
-import com.ji.utils.ImageUtils;
+import com.ji.utils.BitmapUtils;
 import com.ji.utils.LogUtils;
 
 import androidx.fragment.app.Fragment;
@@ -39,7 +39,7 @@ public class MainActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         LogUtils.v(TAG, "onCreate");
-        ImageUtils.create();
+        BitmapUtils.create();
         setContentView(R.layout.main_activity);
 
         setupFragment();
@@ -49,7 +49,7 @@ public class MainActivity extends FragmentActivity {
     protected void onDestroy() {
         super.onDestroy();
         LogUtils.v(TAG, "onDestroy");
-        ImageUtils.destroy();
+        BitmapUtils.destroy();
     }
 
     private void setupFragment() {

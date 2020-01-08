@@ -14,7 +14,7 @@ import android.provider.BaseColumns;
 import androidx.annotation.NonNull;
 
 public class AppProvider extends ContentProvider {
-    private static final String AUTHORITY = "com.ji.tree.local";
+    private static final String AUTHORITY = "com.ji.app.local";
     private static final String TABLE_DATA = "data";
     public static final Uri TABLE_URI = Uri.parse("content://" + AUTHORITY + "/" + TABLE_DATA);
     public static class Columns implements BaseColumns {
@@ -42,10 +42,12 @@ public class AppProvider extends ContentProvider {
     }
 
     @Override
-    public Cursor query(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+    public Cursor query(@NonNull Uri uri, String[] projection, String selection,
+                        String[] selectionArgs, String sortOrder) {
         SQLiteDatabase database = mAppSQLiteOpenHelper.getWritableDatabase();
         if (sMatcher.match(uri) == CODE_DATA) {
-            return database.query(TABLE_DATA, projection, selection, selectionArgs, null, null, null);
+            return database.query(TABLE_DATA, projection, selection, selectionArgs,
+                    null, null, null);
         }
         return null;
     }

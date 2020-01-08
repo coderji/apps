@@ -17,9 +17,6 @@ import com.ji.app.local.AppData;
 import com.ji.app.tencent.TencentRepository;
 import com.ji.utils.LogUtils;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -131,17 +128,4 @@ public class MineAppFragment extends Fragment {
             LogUtils.v(TAG, "onServiceDisconnected");
         }
     };
-
-    public static void main(String[] args) {
-        try {
-            LogUtils.v(TAG, "> https://github.com/coderji/Tree/blob/master/app/release/output.json");
-            Document output = Jsoup.connect("https://github.com/coderji/Tree/blob/master/app/release/output.json").get();
-            LogUtils.v(TAG, "< https://github.com/coderji/Tree/blob/master/app/release/output.json");
-            String json = output.getElementById("LC1").text();
-            long versionCode = new com.ji.org.json.JSONArray(json).getJSONObject(0).getJSONObject("apkInfo").getLong("versionCode");
-            LogUtils.v(TAG, "versionCode:" + versionCode + " json:" + json);
-        } catch (Exception e) {
-            LogUtils.e(TAG, "output.json", e);
-        }
-    }
 }

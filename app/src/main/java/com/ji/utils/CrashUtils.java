@@ -18,7 +18,8 @@ public class CrashUtils  {
     private static final String TAG = "CrashUtils";
 
     public static void initUncaughtExceptionHandler() {
-        final Thread.UncaughtExceptionHandler defaultCrashHandler = Thread.getDefaultUncaughtExceptionHandler();
+        final Thread.UncaughtExceptionHandler defaultCrashHandler =
+                Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(Thread t, Throwable e) {
@@ -33,7 +34,8 @@ public class CrashUtils  {
     }
 
     private static void dumpException(Throwable e) {
-        String time = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.getDefault()).format(new Date());
+        String time = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss",
+                Locale.getDefault()).format(new Date());
         File file = new File(DiskUtils.getCrashCacheDir() + File.separator + time);
         try {
             PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(file)));

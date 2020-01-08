@@ -11,8 +11,8 @@ import java.net.URL;
 
 import javax.net.ssl.HttpsURLConnection;
 
-public class InternetUtils {
-    private static final String TAG = "InternetUtils";
+public class HttpUtils {
+    private static final String TAG = "HttpUtils";
 
     public static String getString(String address) {
         LogUtils.v(TAG, "getString address:" + address);

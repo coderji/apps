@@ -32,7 +32,8 @@ public class TopAppFragment extends Fragment implements TopAppContract.View {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View parent = inflater.inflate(R.layout.top_app_fragment, container, false);
 
         RecyclerView recyclerView = parent.findViewById(R.id.top_rv);
@@ -48,7 +49,8 @@ public class TopAppFragment extends Fragment implements TopAppContract.View {
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
 
-                if (mAppViewAdapter.getBottomType() == AppViewAdapter.TYPE_LOADING && recyclerView.getLayoutManager() instanceof LinearLayoutManager) {
+                if (mAppViewAdapter.getBottomType() == AppViewAdapter.TYPE_LOADING
+                        && recyclerView.getLayoutManager() instanceof LinearLayoutManager) {
                     LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
                     int itemCount = layoutManager.getItemCount();
                     int lastPosition = layoutManager.findLastCompletelyVisibleItemPosition();

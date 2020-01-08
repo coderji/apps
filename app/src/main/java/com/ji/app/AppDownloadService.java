@@ -21,7 +21,7 @@ import android.widget.Toast;
 
 import com.ji.app.local.AppData;
 import com.ji.app.local.AppProvider;
-import com.ji.utils.CommonUtils;
+import com.ji.utils.Utils;
 import com.ji.utils.DiskUtils;
 import com.ji.utils.LogUtils;
 import com.ji.utils.ThreadUtils;
@@ -107,7 +107,7 @@ public class AppDownloadService extends Service {
                 File file = new File(apkPath);
                 if (file.exists()) {
                     data.downloadSize = file.length();
-                    return CommonUtils.byte2FitMemorySize(data.downloadSize);
+                    return Utils.byte2FitMemorySize(data.downloadSize);
                 }
                 return getString(R.string.install);
             }
@@ -147,7 +147,7 @@ public class AppDownloadService extends Service {
                                         @Override
                                         public void run() {
                                             if ((data.packageName.equals(b.getTag()))) {
-                                                b.setText(CommonUtils.byte2FitMemorySize(data.downloadSize));
+                                                b.setText(Utils.byte2FitMemorySize(data.downloadSize));
                                             }
                                         }
                                     });
@@ -165,7 +165,7 @@ public class AppDownloadService extends Service {
                                 downloadApp(waiting);
                             }
                             if (data.state == START_STATE) {
-                                CommonUtils.installApp(getApplicationContext(), new File(apkPath));
+                                Utils.installApp(getApplicationContext(), new File(apkPath));
                             }
                             mButtonMap.remove(data.packageName);
                         } else if (responseCode == 416) { // 416
@@ -199,12 +199,10 @@ public class AppDownloadService extends Service {
         super.onCreate();
         LogUtils.v(TAG, "onCreate " + this);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            initInstallApps();
-            LauncherApps launcherApps = (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
-            if (launcherApps != null) {
-                launcherApps.registerCallback(mAppsCallback);
-            }
+        initInstallApps();
+        LauncherApps launcherApps = (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
+        if (launcherApps != null) {
+            launcherApps.registerCallback(mAppsCallback);
         }
     }
 
@@ -213,11 +211,9 @@ public class AppDownloadService extends Service {
         super.onDestroy();
         LogUtils.v(TAG, "onDestroy " + this);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            LauncherApps launcherApps = (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
-            if (launcherApps != null) {
-                launcherApps.unregisterCallback(mAppsCallback);
-            }
+        LauncherApps launcherApps = (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
+        if (launcherApps != null) {
+            launcherApps.unregisterCallback(mAppsCallback);
         }
     }
 
@@ -248,7 +244,7 @@ public class AppDownloadService extends Service {
     private void onStartDownload(AppData data) {
         Intent intent = new Intent(getApplicationContext(), AppDownloadService.class);
         if (mStartMap.size() == 1) {
-            startService(intent);
+            startForegroundService(intent);
         }
 
         sendNotify(data.name);
@@ -284,31 +280,27 @@ public class AppDownloadService extends Service {
 
     private void sendNotify(String name) {
         LogUtils.v(TAG, "sendNotify");
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (notificationManager != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                Notification.Builder builder = new Notification.Builder(getApplicationContext());
-                builder.setContentText(getString(R.string.download) + " " + name);
-                builder.setSmallIcon(R.mipmap.ic_launcher);
+            Notification.Builder builder = new Notification.Builder(getApplicationContext(), getString(R.string.download));
+            builder.setContentText(getString(R.string.download) + " " + name);
+            builder.setSmallIcon(R.mipmap.ic_launcher);
 
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                    NotificationChannel notificationChannel =
-                            new NotificationChannel(getPackageName(), getString(R.string.download), NotificationManager.IMPORTANCE_DEFAULT);
-                    notificationManager.createNotificationChannel(notificationChannel);
-                    builder.setChannelId(notificationChannel.getId());
-                }
-                notificationManager.notify(NOTIFICATION_ID, builder.build());
-            } else {
-                Notification notification = new Notification();
-                notification.tickerText = getString(R.string.download) + " " + name;
-                notificationManager.notify(NOTIFICATION_ID, notification);
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                NotificationChannel notificationChannel =
+                        new NotificationChannel(getPackageName(), getString(R.string.download), NotificationManager.IMPORTANCE_DEFAULT);
+                notificationManager.createNotificationChannel(notificationChannel);
+                builder.setChannelId(notificationChannel.getId());
             }
+            notificationManager.notify(NOTIFICATION_ID, builder.build());
         }
     }
 
     private void cancelNotify() {
         LogUtils.v(TAG, "cancelNotify");
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (notificationManager != null) {
             notificationManager.cancel(NOTIFICATION_ID);
         }

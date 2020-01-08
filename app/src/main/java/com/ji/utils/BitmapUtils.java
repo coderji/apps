@@ -7,8 +7,8 @@ import android.widget.ImageView;
 
 import java.io.File;
 
-public class ImageUtils {
-    private static final String TAG = "ImageUtils";
+public class BitmapUtils {
+    private static final String TAG = "BitmapUtils";
     private static LruCache<String, Bitmap> mBitmapLruCache;
 
     public static void create() {
@@ -56,7 +56,7 @@ public class ImageUtils {
                             + address.replace(':', '_').replace('/', '_');
                     File file = new File(imagePath);
                     if (!file.exists()) {
-                        InternetUtils.saveFile(address, file);
+                        HttpUtils.saveFile(address, file);
                     }
 
                     BitmapFactory.Options options = new BitmapFactory.Options();

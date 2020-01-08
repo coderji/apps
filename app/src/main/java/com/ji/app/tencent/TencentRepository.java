@@ -6,7 +6,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
 import com.ji.app.local.AppData;
-import com.ji.utils.InternetUtils;
+import com.ji.utils.HttpUtils;
 import com.ji.utils.JsonUtils;
 import com.ji.utils.LogUtils;
 import com.ji.utils.ThreadUtils;
@@ -37,7 +37,7 @@ public class TencentRepository {
 
     private TopApps getTopApps() {
         LogUtils.v(TAG, "getTopApps > pageNo:" + mPageNo + " pageSize:" + PAGE_SIZE);
-        String s = InternetUtils.getString(
+        String s = HttpUtils.getString(
                 "https://mapp.qzone.qq.com/cgi-bin/mapp/mapp_applist?apptype=soft_top&platform=touch"
                         + "&pageNo=" + mPageNo++
                         + "&pageSize=" + PAGE_SIZE);
@@ -80,7 +80,7 @@ public class TencentRepository {
             mSearchAppList.clear();
         }
         LogUtils.v(TAG, "getSearchApps > kw:" + mKW + " pns:" + mPNS + " sid:" + mSID + " retry:" + retry);
-        String s = InternetUtils.getString(
+        String s = HttpUtils.getString(
                 "https://sj.qq.com/myapp/searchAjax.htm?"
                         + "&kw=" + mKW
                         + "&pns=" + mPNS
@@ -187,28 +187,5 @@ public class TencentRepository {
                 });
             }
         });
-    }
-
-    // Main
-    public static void main(String[] args) {
-        TencentRepository tencentRepository = TencentRepository.getInstance();
-        /*
-        for (int i = 0; i < 20; i++) {
-            TopApps topApps = tencentRepository.getTopApps();
-            LogUtils.v(TAG, "TopApps " + i + " " + topApps);
-            if (!topApps.getNext()) {
-                break;
-            }
-        }
-        */
-        /*
-        for (int i = 0; i < 20; i++) {
-            SearchApps searchApps = tencentRepository.getSearchApps("微信");
-            LogUtils.v(TAG, "SearchApps " + i + " " + searchApps);
-            if (!searchApps.getHasNext()) {
-                break;
-            }
-        }
-        */
     }
 }
